@@ -13,8 +13,7 @@
             "render_operator",
             "publisher",
             "reliability_guardian"
-          ],
-          "maxChildrenPerAgent": 3
+          ]
         }
       },
       {
@@ -27,48 +26,31 @@
             "render_operator",
             "publisher",
             "reliability_guardian"
-          ],
-          "maxChildrenPerAgent": 2
+          ]
         }
       },
       {
-        "id": "trend_researcher",
-        "subagents": {
-          "enabled": false
-        }
+        "id": "trend_researcher"
       },
       {
         "id": "script_writer",
         "subagents": {
           "allowAgents": [
             "trend_researcher"
-          ],
-          "maxSpawnDepth": 1
+          ]
         }
       },
       {
-        "id": "continuity_reviewer",
-        "subagents": {
-          "enabled": false
-        }
+        "id": "continuity_reviewer"
       },
       {
-        "id": "render_operator",
-        "subagents": {
-          "enabled": false
-        }
+        "id": "render_operator"
       },
       {
-        "id": "publisher",
-        "subagents": {
-          "enabled": false
-        }
+        "id": "publisher"
       },
       {
-        "id": "reliability_guardian",
-        "subagents": {
-          "enabled": false
-        }
+        "id": "reliability_guardian"
       }
     ]
   }
