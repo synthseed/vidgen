@@ -24,6 +24,19 @@ Optional:
 - `YOUTUBE_MADE_FOR_KIDS`
 
 ## Quality Gates
+- `node scripts/openclaw_topology_check.js`
 - `node scripts/check_knowledge_base.js`
 - `node scripts/doc_gardener.js`
 - `node scripts/security_preflight.js`
+- `node scripts/pipeline_orchestrator_dry_run.js`
+
+## VPS Auto Sync (OpenClaw)
+One-time setup on VPS:
+- `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_vps_autosync_systemd.sh`
+
+Run once manually:
+- `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
+
+Check timer:
+- `systemctl status vidgen-openclaw-autosync.timer --no-pager`
+- `journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager`

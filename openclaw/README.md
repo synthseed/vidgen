@@ -46,6 +46,18 @@ The sync script auto-detects both runtime layouts:
 - `/data/.openclaw/workspace-<agentId>` (legacy/workspace-style)
 It always syncs both paths so UI context remains consistent across mixed layouts.
 
+## Automated VPS Sync
+Use the host-side auto-sync runner to reduce manual pull/apply steps:
+- `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
+
+The runner:
+1. Pulls latest `dev` commit.
+2. Runs repo checks (`topology`, docs, security, orchestrator dry-run).
+3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
+4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
+5. Restarts OpenClaw and verifies health.
+6. Restores previous runtime config backup automatically if runtime verification fails.
+
 ## Related Docs
 - `../docs/design-docs/openclaw-autonomous-agent-fleet.md`
 - `../docs/product-specs/autonomous-agent-fleet.md`

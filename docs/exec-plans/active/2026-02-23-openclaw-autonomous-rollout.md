@@ -26,6 +26,8 @@ and safe layered config ownership between repo and local private environment.
 - [x] Add orchestration run schema (`RunEnvelope`, stage artifacts) to codebase.
 - [x] Implement director-driven stage state machine with gate enforcement.
 - [x] Implement continuity review gate and publish gate integration.
+- [x] Add repo topology compatibility checks and CI validation steps.
+- [x] Add VPS auto-sync runner with runtime apply/verify/rollback.
 - [ ] Run one full end-to-end test from trend intake to private upload.
 
 ## Validation
@@ -51,6 +53,7 @@ and safe layered config ownership between repo and local private environment.
 - 2026-02-23: Removed bootstrap/deployment template files to avoid redundant artifacts in a live environment.
 - 2026-02-23: Runtime host layering validated; gateway/pairing recovered and re-locked.
 - 2026-02-23: Added continuity/publish gate enforcement and runtime template sync script for agent workspaces.
+- 2026-02-23: Added automated topology apply + template sync + health verification + rollback runner for VPS.
 
 ## Related Docs
 - `../../../openclaw/README.md`
