@@ -95,9 +95,10 @@ reason=${reason}"
 
       if [ -n "$OC_ALERT_ACCOUNT" ]; then
         if [ -n "$GW_TOKEN" ]; then
-          openclaw message send \
+          openclaw \
             --url ws://127.0.0.1:18789 \
             --token "$GW_TOKEN" \
+            message send \
             --channel "$OC_ALERT_CHANNEL" \
             --account "$OC_ALERT_ACCOUNT" \
             --target "$OC_ALERT_TARGET" \
@@ -111,9 +112,10 @@ reason=${reason}"
         fi
       else
         if [ -n "$GW_TOKEN" ]; then
-          openclaw message send \
+          openclaw \
             --url ws://127.0.0.1:18789 \
             --token "$GW_TOKEN" \
+            message send \
             --channel "$OC_ALERT_CHANNEL" \
             --target "$OC_ALERT_TARGET" \
             --message "$OC_ALERT_MESSAGE"
