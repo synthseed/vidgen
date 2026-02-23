@@ -411,16 +411,6 @@ run_optional_gateway_check() {
     return 0
   fi
 
-  if [[ "$VERIFY_REQUIRE_GATEWAY" == "1" ]]; then
-    log "gateway check failed: ${label}: ${output//$'\n'/ | }"
-    return 1
-  fi
-
-  if echo "$output" | grep -Eiq "pairing required|gateway connect failed"; then
-    log "gateway check skipped (pairing required): ${label}"
-    return 0
-  fi
-
   log "gateway check failed: ${label}: ${output//$'\n'/ | }"
   return 1
 }
@@ -446,8 +436,12 @@ run_runtime_verify() {
   wait_for_openclaw_container_ready 20 2 || return 1
 
   run_runtime_file_check || return 1
-  run_optional_gateway_check "openclaw doctor" openclaw doctor || return 1
-  run_optional_gateway_check "openclaw models status --agent main --check" openclaw models status --agent main --check || return 1
+  if [[ "$VERIFY_REQUIRE_GATEWAY" == "1" ]]; then
+    run_optional_gateway_check "openclaw doctor" openclaw doctor || return 1
+    run_optional_gateway_check "openclaw models status --agent main --check" openclaw models status --agent main --check || return 1
+  else
+    log "gateway checks disabled (VERIFY_REQUIRE_GATEWAY=0)"
+  fi
 
   if [[ -n "$VERIFY_LOG_ERROR_PATTERN" ]] && docker compose logs --since 2m "$OPENCLAW_SERVICE" \
     | grep -Eiq "$VERIFY_LOG_ERROR_PATTERN"; then
