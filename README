@@ -39,6 +39,13 @@ Primary mode (event-driven from GitHub Actions):
    - optional: `VPS_PORT`
 2. Install service on VPS (timer disabled by default):
    - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_vps_autosync_systemd.sh`
+3. Optional WhatsApp failure alerts:
+   - `nano /etc/default/vidgen-openclaw-autosync`
+   - set:
+     - `WHATSAPP_ALERT_ENABLED=1`
+     - `WHATSAPP_ALERT_TARGET=<your whatsapp number, e.g. +1760...>`
+   - reload service units:
+     - `systemctl daemon-reload`
 
 Run once manually:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`

@@ -15,6 +15,7 @@ Last Reviewed: 2026-02-23
 - CI checks on `dev/main` push for topology/docs/security/orchestrator dry-run.
 - Event-driven VPS deploy after CI pass, with auto-sync runner for apply/verify/rollback.
 - Optional hourly fallback timer for disconnected webhook periods.
+- Optional WhatsApp failure alerts with cooldown in VPS autosync runner.
 
 ## Required Next Controls
 - Retry policy for resumable upload failures.

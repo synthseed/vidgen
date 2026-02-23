@@ -53,6 +53,13 @@ Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_POR
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
 
+Optional WhatsApp alerts for deployment failures:
+1. Edit `/etc/default/vidgen-openclaw-autosync`.
+2. Set `WHATSAPP_ALERT_ENABLED=1`.
+3. Set `WHATSAPP_ALERT_TARGET=<your WhatsApp number>`.
+4. Optionally set `WHATSAPP_ALERT_ACCOUNT` if multiple WhatsApp accounts are configured.
+5. Restart/reload: `systemctl daemon-reload`.
+
 The runner:
 1. Pulls latest `dev` commit.
 2. Runs repo checks (`topology`, docs, security, orchestrator dry-run).
@@ -60,6 +67,7 @@ The runner:
 4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
 6. Restores previous runtime config backup automatically if runtime verification fails.
+7. Sends WhatsApp failure alerts (with cooldown) when enabled.
 
 This flow does not call model inference APIs; it uses git/docker/node/system checks only.
 

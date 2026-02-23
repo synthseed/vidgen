@@ -13,6 +13,13 @@ SLEEP_AFTER_RESTART="${SLEEP_AFTER_RESTART:-5}"
 STATE_FILE="${STATE_FILE:-/tmp/vidgen-openclaw-autosync.state}"
 WORKTREE_BASE="${WORKTREE_BASE:-/tmp/vidgen-autosync-worktrees}"
 RUNTIME_BACKUP="${RUNTIME_BACKUP:-${OPENCLAW_HOME}/openclaw.json.autosync-prev}"
+WHATSAPP_ALERT_ENABLED="${WHATSAPP_ALERT_ENABLED:-0}"
+WHATSAPP_ALERT_CHANNEL="${WHATSAPP_ALERT_CHANNEL:-whatsapp}"
+WHATSAPP_ALERT_TARGET="${WHATSAPP_ALERT_TARGET:-}"
+WHATSAPP_ALERT_ACCOUNT="${WHATSAPP_ALERT_ACCOUNT:-}"
+WHATSAPP_ALERT_PREFIX="${WHATSAPP_ALERT_PREFIX:-[vidgen-autosync]}"
+WHATSAPP_ALERT_MIN_INTERVAL_SEC="${WHATSAPP_ALERT_MIN_INTERVAL_SEC:-900}"
+WHATSAPP_ALERT_STATE_FILE="${WHATSAPP_ALERT_STATE_FILE:-/tmp/vidgen-openclaw-alert.state}"
 
 TARGET_COMMIT=""
 DEPLOYED_COMMIT=""
@@ -21,10 +28,101 @@ log() {
   printf "%s [%s] %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SCRIPT_NAME" "$*"
 }
 
+now_epoch() {
+  date +%s
+}
+
+should_send_alert() {
+  if [[ "$WHATSAPP_ALERT_ENABLED" != "1" ]]; then
+    return 1
+  fi
+  if [[ -z "$WHATSAPP_ALERT_TARGET" ]]; then
+    return 1
+  fi
+  if [[ ! -f "$WHATSAPP_ALERT_STATE_FILE" ]]; then
+    return 0
+  fi
+
+  local last_epoch current_epoch delta
+  last_epoch="$(cat "$WHATSAPP_ALERT_STATE_FILE" 2>/dev/null || true)"
+  if [[ -z "$last_epoch" ]]; then
+    return 0
+  fi
+  current_epoch="$(now_epoch)"
+  delta=$((current_epoch - last_epoch))
+  if (( delta >= WHATSAPP_ALERT_MIN_INTERVAL_SEC )); then
+    return 0
+  fi
+  return 1
+}
+
+mark_alert_sent() {
+  now_epoch >"$WHATSAPP_ALERT_STATE_FILE" 2>/dev/null || true
+}
+
+send_whatsapp_alert() {
+  local status="$1"
+  local reason="$2"
+
+  if ! should_send_alert; then
+    return 0
+  fi
+
+  local host_name run_time message
+  host_name="$(hostname -s 2>/dev/null || hostname)"
+  run_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  message="${WHATSAPP_ALERT_PREFIX} ${status}
+host=${host_name}
+branch=${BRANCH}
+target_commit=${TARGET_COMMIT:-n/a}
+deployed_commit=${DEPLOYED_COMMIT:-n/a}
+time=${run_time}
+reason=${reason}"
+
+  local cmd=(docker compose exec -T "$OPENCLAW_SERVICE" openclaw message send \
+    --channel "$WHATSAPP_ALERT_CHANNEL" \
+    --target "$WHATSAPP_ALERT_TARGET" \
+    --message "$message")
+
+  if [[ -n "$WHATSAPP_ALERT_ACCOUNT" ]]; then
+    cmd+=(--account "$WHATSAPP_ALERT_ACCOUNT")
+  fi
+
+  if ! cd "$PROJECT_DIR" 2>/dev/null; then
+    log "warning: cannot enter PROJECT_DIR for whatsapp alert: $PROJECT_DIR"
+    return 0
+  fi
+  if "${cmd[@]}" >/dev/null 2>&1; then
+    mark_alert_sent
+    log "whatsapp alert sent (${status})"
+  else
+    log "warning: failed to send whatsapp alert"
+  fi
+}
+
+fail() {
+  local reason="$1"
+  log "$reason"
+  send_whatsapp_alert "FAIL" "$reason"
+  exit 1
+}
+
+on_error() {
+  local line="$1"
+  local cmd="$2"
+  local code="$3"
+  local reason
+  reason="unexpected error (exit=${code}, line=${line}, cmd=${cmd})"
+  log "$reason"
+  send_whatsapp_alert "FAIL" "$reason"
+  exit "$code"
+}
+
+trap 'on_error "$LINENO" "$BASH_COMMAND" "$?"' ERR
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    log "missing required command: $1"
-    exit 1
+    fail "missing required command: $1"
   fi
 }
 
@@ -149,13 +247,11 @@ main() {
 
   cd "$REPO_DIR"
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    log "REPO_DIR is not a git repository: $REPO_DIR"
-    exit 1
+    fail "REPO_DIR is not a git repository: $REPO_DIR"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
-    log "repository has local changes; refusing auto-sync"
-    exit 1
+    fail "repository has local changes; refusing auto-sync"
   fi
 
   local_current="$(git rev-parse HEAD)"
@@ -185,7 +281,7 @@ main() {
   if ! deploy_current_repo; then
     log "deployment failed; attempting runtime config restore"
     rollback_runtime_config || true
-    exit 1
+    fail "deployment failed and runtime config restore attempted"
   fi
 }
 

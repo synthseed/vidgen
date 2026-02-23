@@ -8,6 +8,7 @@ Type=oneshot
 User=root
 Group=root
 WorkingDirectory=/docker/openclaw-jnqf
+EnvironmentFile=-/etc/default/vidgen-openclaw-autosync
 Environment=REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
 Environment=PROJECT_DIR=/docker/openclaw-jnqf
 Environment=BRANCH=dev

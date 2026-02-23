@@ -6,9 +6,11 @@ SYSTEMD_DIR="${SYSTEMD_DIR:-/etc/systemd/system}"
 SERVICE_NAME="vidgen-openclaw-autosync.service"
 TIMER_NAME="vidgen-openclaw-autosync.timer"
 ENABLE_TIMER="${ENABLE_TIMER:-0}"
+ENV_TARGET="${ENV_TARGET:-/etc/default/vidgen-openclaw-autosync}"
 
 SRC_SERVICE="${REPO_DIR}/ops/systemd/${SERVICE_NAME}"
 SRC_TIMER="${REPO_DIR}/ops/systemd/${TIMER_NAME}"
+SRC_ENV_EXAMPLE="${REPO_DIR}/ops/systemd/vidgen-openclaw-autosync.env.example"
 
 if [[ ! -f "${SRC_SERVICE}" ]]; then
   echo "missing service file: ${SRC_SERVICE}" >&2
@@ -20,8 +22,19 @@ if [[ ! -f "${SRC_TIMER}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${SRC_ENV_EXAMPLE}" ]]; then
+  echo "missing env example file: ${SRC_ENV_EXAMPLE}" >&2
+  exit 1
+fi
+
 install -m 0644 "${SRC_SERVICE}" "${SYSTEMD_DIR}/${SERVICE_NAME}"
 install -m 0644 "${SRC_TIMER}" "${SYSTEMD_DIR}/${TIMER_NAME}"
+
+if [[ ! -f "${ENV_TARGET}" ]]; then
+  install -m 0600 "${SRC_ENV_EXAMPLE}" "${ENV_TARGET}"
+  echo "installed env template: ${ENV_TARGET}"
+  echo "edit ${ENV_TARGET} to set WHATSAPP_ALERT_ENABLED=1 and WHATSAPP_ALERT_TARGET."
+fi
 
 systemctl daemon-reload
 if [[ "${ENABLE_TIMER}" == "1" ]]; then
