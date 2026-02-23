@@ -19,8 +19,8 @@ and safe layered config ownership between repo and local private environment.
 
 ## Task List
 - [x] Create repo-owned production topology file (`openclaw/openclaw.json`).
-- [x] Add local include/private templates for safe layering.
-- [x] Add VPS Docker-focused layered config guidance and templates.
+- [x] Define repo-vs-runtime config ownership boundary.
+- [x] Add VPS runtime guidance for layered config without storing private files in repo.
 - [ ] Apply layered runtime-host config and validate startup.
 - [ ] Bind channels to role agent IDs in local private config.
 - [x] Add orchestration run schema (`RunEnvelope`, stage artifacts) to codebase.
@@ -45,9 +45,10 @@ and safe layered config ownership between repo and local private environment.
 
 ## Progress Log
 - 2026-02-23: Added OpenClaw role templates and multi-agent reference scaffold.
-- 2026-02-23: Added safe layered config files for repo vs local private ownership.
+- 2026-02-23: Added safe layered config approach with repo/runtime ownership split.
 - 2026-02-23: Switched setup guidance to VPS Docker runtime model.
 - 2026-02-23: Added orchestration contracts and deterministic state-machine scaffolding.
+- 2026-02-23: Removed bootstrap/deployment template files to avoid redundant artifacts in a live environment.
 - 2026-02-23: Runtime host application and channel binding still pending.
 
 ## Related Docs
