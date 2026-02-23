@@ -56,6 +56,7 @@ Host-side runner used by both event-driven deploy and manual fallback:
 Recommended autosync safety setting:
 1. Edit `/etc/default/vidgen-openclaw-autosync`.
 2. Set `DIRTY_REPO_STRATEGY=stash` (default) so local drift does not block deploys.
+3. Set `VERIFY_REQUIRE_GATEWAY=0` for pairing-required environments (default).
 
 Optional Telegram alerts for deployment failures (recommended):
 1. Edit `/etc/default/vidgen-openclaw-autosync`.

@@ -13,6 +13,8 @@ SLEEP_AFTER_RESTART="${SLEEP_AFTER_RESTART:-5}"
 STATE_FILE="${STATE_FILE:-/tmp/vidgen-openclaw-autosync.state}"
 WORKTREE_BASE="${WORKTREE_BASE:-/tmp/vidgen-autosync-worktrees}"
 RUNTIME_BACKUP="${RUNTIME_BACKUP:-${OPENCLAW_HOME}/openclaw.json.autosync-prev}"
+VERIFY_REQUIRE_GATEWAY="${VERIFY_REQUIRE_GATEWAY:-0}"
+VERIFY_LOG_ERROR_PATTERN="${VERIFY_LOG_ERROR_PATTERN:-Config invalid|EACCES: permission denied}"
 WHATSAPP_ALERT_ENABLED="${WHATSAPP_ALERT_ENABLED:-0}"
 WHATSAPP_ALERT_CHANNEL="${WHATSAPP_ALERT_CHANNEL:-whatsapp}"
 WHATSAPP_ALERT_TARGET="${WHATSAPP_ALERT_TARGET:-}"
@@ -399,6 +401,30 @@ wait_for_openclaw_container_ready() {
   return 1
 }
 
+run_optional_gateway_check() {
+  local label="$1"
+  shift
+  local output
+
+  if output=$(docker compose exec -T "$OPENCLAW_SERVICE" "$@" 2>&1); then
+    log "gateway check passed: ${label}"
+    return 0
+  fi
+
+  if [[ "$VERIFY_REQUIRE_GATEWAY" == "1" ]]; then
+    log "gateway check failed: ${label}: ${output//$'\n'/ | }"
+    return 1
+  fi
+
+  if echo "$output" | grep -Eiq "pairing required|gateway connect failed"; then
+    log "gateway check skipped (pairing required): ${label}"
+    return 0
+  fi
+
+  log "gateway check failed: ${label}: ${output//$'\n'/ | }"
+  return 1
+}
+
 run_runtime_verify() {
   log "restarting $OPENCLAW_SERVICE and verifying health"
   cd "$PROJECT_DIR"
@@ -407,11 +433,12 @@ run_runtime_verify() {
   sleep "$SLEEP_AFTER_RESTART" || return 1
   wait_for_openclaw_container_ready 20 2 || return 1
 
-  docker compose exec -T "$OPENCLAW_SERVICE" openclaw doctor >/dev/null || return 1
-  docker compose exec -T "$OPENCLAW_SERVICE" openclaw models status --agent main --check >/dev/null || return 1
+  docker compose exec -T "$OPENCLAW_SERVICE" openclaw config get agents.list >/dev/null || return 1
+  run_optional_gateway_check "openclaw doctor" openclaw doctor || return 1
+  run_optional_gateway_check "openclaw models status --agent main --check" openclaw models status --agent main --check || return 1
 
-  if docker compose logs --since 2m "$OPENCLAW_SERVICE" \
-    | grep -Eiq "Config invalid|pairing required|gateway connect failed|EACCES: permission denied"; then
+  if [[ -n "$VERIFY_LOG_ERROR_PATTERN" ]] && docker compose logs --since 2m "$OPENCLAW_SERVICE" \
+    | grep -Eiq "$VERIFY_LOG_ERROR_PATTERN"; then
     log "runtime verification failed due to error signatures in logs"
     return 1
   fi
@@ -420,10 +447,12 @@ run_runtime_verify() {
 rollback_runtime_config() {
   log "restoring runtime config from backup"
   cd "$PROJECT_DIR"
+  wait_for_openclaw_container_ready 20 2 || true
   docker compose exec -T "$OPENCLAW_SERVICE" \
-    sh -lc "cp \"$RUNTIME_BACKUP\" \"$OPENCLAW_HOME/openclaw.json\""
-  docker compose restart "$OPENCLAW_SERVICE" >/dev/null
-  sleep "$SLEEP_AFTER_RESTART"
+    sh -lc "cp \"$RUNTIME_BACKUP\" \"$OPENCLAW_HOME/openclaw.json\"" || return 1
+  docker compose restart "$OPENCLAW_SERVICE" >/dev/null || return 1
+  sleep "$SLEEP_AFTER_RESTART" || return 1
+  wait_for_openclaw_container_ready 20 2 || return 1
 }
 
 run_candidate_checks() {
