@@ -375,22 +375,40 @@ run_runtime_apply() {
   docker compose exec -T "$OPENCLAW_SERVICE" \
     node /data/repos/vidgen/scripts/openclaw_apply_repo_topology.js \
       --runtime-config "$OPENCLAW_HOME/openclaw.json" \
-      --repo-config /data/repos/vidgen/openclaw/openclaw.json
+      --repo-config /data/repos/vidgen/openclaw/openclaw.json || return 1
 
   docker compose exec -T "$OPENCLAW_SERVICE" \
     node /data/repos/vidgen/scripts/openclaw_sync_agent_templates.js \
-      --openclaw-home "$OPENCLAW_HOME"
+      --openclaw-home "$OPENCLAW_HOME" || return 1
+}
+
+wait_for_openclaw_container_ready() {
+  local max_attempts="${1:-20}"
+  local sleep_sec="${2:-2}"
+  local attempt
+
+  for ((attempt = 1; attempt <= max_attempts; attempt += 1)); do
+    if docker compose exec -T "$OPENCLAW_SERVICE" sh -lc "true" >/dev/null 2>&1; then
+      log "openclaw container is ready (attempt ${attempt}/${max_attempts})"
+      return 0
+    fi
+    sleep "$sleep_sec"
+  done
+
+  log "openclaw container did not become ready within ${max_attempts} attempts"
+  return 1
 }
 
 run_runtime_verify() {
   log "restarting $OPENCLAW_SERVICE and verifying health"
   cd "$PROJECT_DIR"
 
-  docker compose restart "$OPENCLAW_SERVICE" >/dev/null
-  sleep "$SLEEP_AFTER_RESTART"
+  docker compose restart "$OPENCLAW_SERVICE" >/dev/null || return 1
+  sleep "$SLEEP_AFTER_RESTART" || return 1
+  wait_for_openclaw_container_ready 20 2 || return 1
 
-  docker compose exec -T "$OPENCLAW_SERVICE" openclaw doctor >/dev/null
-  docker compose exec -T "$OPENCLAW_SERVICE" openclaw models status --agent main --check >/dev/null
+  docker compose exec -T "$OPENCLAW_SERVICE" openclaw doctor >/dev/null || return 1
+  docker compose exec -T "$OPENCLAW_SERVICE" openclaw models status --agent main --check >/dev/null || return 1
 
   if docker compose logs --since 2m "$OPENCLAW_SERVICE" \
     | grep -Eiq "Config invalid|pairing required|gateway connect failed|EACCES: permission denied"; then
@@ -439,9 +457,9 @@ mark_success() {
 
 deploy_current_repo() {
   DEPLOYED_COMMIT="$(git -C "$REPO_DIR" rev-parse HEAD)"
-  prepare_runtime_backup
-  run_runtime_apply
-  run_runtime_verify
+  prepare_runtime_backup || return 1
+  run_runtime_apply || return 1
+  run_runtime_verify || return 1
   mark_success "$DEPLOYED_COMMIT"
   log "sync complete on commit ${DEPLOYED_COMMIT}"
 }
