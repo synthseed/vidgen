@@ -17,6 +17,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 2. Keep live VPS private settings (auth, channels, sessions, security, env secrets) outside this repo.
 3. Keep role-critical decisions on role main sessions to preserve identity context.
 4. Keep `main` as the default admin entry point; delegate execution work to specialist agents.
+5. Do not use relative `agentDir` paths; use OpenClaw defaults or absolute writable paths only.
 
 ## Live Validation Commands
 Run in the live OpenClaw container/host:

@@ -3,7 +3,6 @@
     "list": [
       {
         "id": "main",
-        "agentDir": "main",
         "default": true,
         "subagents": {
           "allowAgents": [
@@ -20,7 +19,6 @@
       },
       {
         "id": "director",
-        "agentDir": "director",
         "subagents": {
           "allowAgents": [
             "trend_researcher",
@@ -35,14 +33,12 @@
       },
       {
         "id": "trend_researcher",
-        "agentDir": "trend_researcher",
         "subagents": {
           "enabled": false
         }
       },
       {
         "id": "script_writer",
-        "agentDir": "script_writer",
         "subagents": {
           "allowAgents": [
             "trend_researcher"
@@ -52,28 +48,24 @@
       },
       {
         "id": "continuity_reviewer",
-        "agentDir": "continuity_reviewer",
         "subagents": {
           "enabled": false
         }
       },
       {
         "id": "render_operator",
-        "agentDir": "render_operator",
         "subagents": {
           "enabled": false
         }
       },
       {
         "id": "publisher",
-        "agentDir": "publisher",
         "subagents": {
           "enabled": false
         }
       },
       {
         "id": "reliability_guardian",
-        "agentDir": "reliability_guardian",
         "subagents": {
           "enabled": false
         }
