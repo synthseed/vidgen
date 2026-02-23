@@ -69,6 +69,24 @@ function copyTemplateFile(srcPath, dstPath, dryRun) {
   fs.copyFileSync(srcPath, dstPath);
 }
 
+function unique(items) {
+  return [...new Set(items)];
+}
+
+function resolveTargetDirs(openclawHome, agentId) {
+  const candidates = [
+    path.join(openclawHome, "agents", agentId, "agent"),
+    path.join(openclawHome, "workspaces", "agents", agentId, "agent"),
+    path.join(openclawHome, `workspace-${agentId}`)
+  ];
+
+  const existing = candidates.filter((dirPath) => fs.existsSync(dirPath));
+  if (existing.length > 0) return unique(existing);
+
+  // Fallback for fresh installs where no agent workspace exists yet.
+  return [candidates[0]];
+}
+
 function run() {
   const args = parseArgs(process.argv.slice(2));
   const templatesRoot = path.join(args.repoRoot, "openclaw", "workspace-templates");
@@ -81,27 +99,33 @@ function run() {
   }
 
   let copiedCount = 0;
+  let targetDirCount = 0;
   const warnings = [];
 
   for (const agentId of requestedAgents) {
     const srcAgentDir = path.join(templatesRoot, agentId);
-    const dstAgentDir = path.join(args.openclawHome, "agents", agentId, "agent");
-    ensureDir(dstAgentDir, args.dryRun);
+    const targetDirs = resolveTargetDirs(args.openclawHome, agentId);
+    targetDirCount += targetDirs.length;
 
-    for (const fileName of REQUIRED_FILES) {
-      const srcFile = path.join(srcAgentDir, fileName);
-      const dstFile = path.join(dstAgentDir, fileName);
+    for (const dstAgentDir of targetDirs) {
+      ensureDir(dstAgentDir, args.dryRun);
+      console.log(`${args.dryRun ? "would sync" : "syncing"} ${agentId} -> ${dstAgentDir}`);
 
-      if (!fs.existsSync(srcFile)) {
-        const message = `Missing template file for ${agentId}: ${srcFile}`;
-        if (args.strict) throw new Error(message);
-        warnings.push(message);
-        continue;
+      for (const fileName of REQUIRED_FILES) {
+        const srcFile = path.join(srcAgentDir, fileName);
+        const dstFile = path.join(dstAgentDir, fileName);
+
+        if (!fs.existsSync(srcFile)) {
+          const message = `Missing template file for ${agentId}: ${srcFile}`;
+          if (args.strict) throw new Error(message);
+          warnings.push(message);
+          continue;
+        }
+
+        copyTemplateFile(srcFile, dstFile, args.dryRun);
+        copiedCount += 1;
+        console.log(`${args.dryRun ? "would copy" : "copied"} ${srcFile} -> ${dstFile}`);
       }
-
-      copyTemplateFile(srcFile, dstFile, args.dryRun);
-      copiedCount += 1;
-      console.log(`${args.dryRun ? "would copy" : "copied"} ${srcFile} -> ${dstFile}`);
     }
   }
 
@@ -110,7 +134,7 @@ function run() {
   }
 
   console.log(
-    `${args.dryRun ? "dry run complete" : "sync complete"}: ${requestedAgents.length} agent(s), ${copiedCount} file(s)`
+    `${args.dryRun ? "dry run complete" : "sync complete"}: ${requestedAgents.length} agent(s), ${targetDirCount} target dir(s), ${copiedCount} file(s)`
   );
 }
 
@@ -120,4 +144,3 @@ try {
   console.error(`error: ${error.message}`);
   process.exit(1);
 }
-

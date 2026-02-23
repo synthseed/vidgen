@@ -41,6 +41,9 @@ Run in the live OpenClaw container/host:
 If specialist agents appear without workspace identity files in the UI, sync templates into runtime workspaces:
 - `node /data/repos/vidgen/scripts/openclaw_sync_agent_templates.js --openclaw-home /data/.openclaw`
 - Dry run: `node /data/repos/vidgen/scripts/openclaw_sync_agent_templates.js --openclaw-home /data/.openclaw --dry-run`
+The sync script auto-detects both runtime layouts:
+- `/data/.openclaw/agents/<agentId>/agent`
+- `/data/.openclaw/workspace-<agentId>` (legacy/workspace-style)
 
 ## Related Docs
 - `../docs/design-docs/openclaw-autonomous-agent-fleet.md`
