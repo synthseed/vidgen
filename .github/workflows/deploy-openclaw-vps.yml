@@ -12,21 +12,34 @@ jobs:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'dev' &&
-      github.event.workflow_run.event == 'push' &&
-      secrets.VPS_HOST != '' &&
-      secrets.VPS_USER != '' &&
-      secrets.VPS_SSH_KEY != ''
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
+      - name: Validate VPS Secrets
+        id: vps_secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$VPS_SSH_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "VPS deploy secrets detected."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "VPS deploy secrets missing; skipping deploy step."
+          fi
+
       - name: Deploy to VPS over SSH
+        if: steps.vps_secrets.outputs.enabled == 'true'
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
+          port: ${{ secrets.VPS_PORT }}
           script_stop: true
           command_timeout: 40m
           script: |
