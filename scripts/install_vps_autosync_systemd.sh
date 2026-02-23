@@ -33,7 +33,7 @@ install -m 0644 "${SRC_TIMER}" "${SYSTEMD_DIR}/${TIMER_NAME}"
 if [[ ! -f "${ENV_TARGET}" ]]; then
   install -m 0600 "${SRC_ENV_EXAMPLE}" "${ENV_TARGET}"
   echo "installed env template: ${ENV_TARGET}"
-  echo "edit ${ENV_TARGET} to set WHATSAPP_ALERT_ENABLED=1 and WHATSAPP_ALERT_TARGET."
+  echo "edit ${ENV_TARGET} to set DIRTY_REPO_STRATEGY=stash and optional Telegram/WhatsApp alerts."
 fi
 
 systemctl daemon-reload

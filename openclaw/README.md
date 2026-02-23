@@ -53,6 +53,10 @@ Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_POR
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
 
+Recommended autosync safety setting:
+1. Edit `/etc/default/vidgen-openclaw-autosync`.
+2. Set `DIRTY_REPO_STRATEGY=stash` (default) so local drift does not block deploys.
+
 Optional Telegram alerts for deployment failures (recommended):
 1. Edit `/etc/default/vidgen-openclaw-autosync`.
 2. Set `TELEGRAM_ALERT_ENABLED=1`.
@@ -68,7 +72,7 @@ Optional WhatsApp alerts are still supported, but they depend on OpenClaw gatewa
 
 The runner:
 1. Pulls latest `dev` commit.
-2. Runs repo checks (`topology`, docs, security, orchestrator dry-run).
+2. Runs repo checks (`topology`, workflow integrity, docs, security, orchestrator dry-run).
 3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
 4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.

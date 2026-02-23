@@ -19,6 +19,58 @@ function normalizeAllowAgents(subagents) {
   return subagents.allowAgents.filter(isNonEmptyString);
 }
 
+function detectCycles(graph) {
+  const visited = new Set();
+  const stack = new Set();
+  const path = [];
+  const cycles = new Set();
+
+  function dfs(node) {
+    if (stack.has(node)) {
+      const index = path.indexOf(node);
+      if (index >= 0) {
+        const cycle = [...path.slice(index), node].join(" -> ");
+        cycles.add(cycle);
+      }
+      return;
+    }
+    if (visited.has(node)) return;
+
+    visited.add(node);
+    stack.add(node);
+    path.push(node);
+
+    const neighbors = graph.get(node) || [];
+    for (const next of neighbors) {
+      dfs(next);
+    }
+
+    path.pop();
+    stack.delete(node);
+  }
+
+  for (const node of graph.keys()) {
+    if (!visited.has(node)) dfs(node);
+  }
+
+  return [...cycles];
+}
+
+function reachableFrom(graph, start) {
+  const seen = new Set();
+  const queue = [start];
+  while (queue.length > 0) {
+    const next = queue.shift();
+    if (seen.has(next)) continue;
+    seen.add(next);
+    const neighbors = graph.get(next) || [];
+    for (const neighbor of neighbors) {
+      if (!seen.has(neighbor)) queue.push(neighbor);
+    }
+  }
+  return seen;
+}
+
 function checkTopology(repoRoot) {
   const errors = [];
   const warnings = [];
@@ -45,6 +97,7 @@ function checkTopology(repoRoot) {
 
   const ids = new Set();
   const defaults = [];
+  const graph = new Map();
   for (const agent of agents) {
     if (!agent || typeof agent !== "object") {
       errors.push("Each agents.list item must be an object");
@@ -60,6 +113,7 @@ function checkTopology(repoRoot) {
       errors.push(`Duplicate agent id: ${agent.id}`);
     }
     ids.add(agent.id);
+    graph.set(agent.id, []);
 
     if (agent.default === true) defaults.push(agent.id);
 
@@ -84,9 +138,17 @@ function checkTopology(repoRoot) {
   for (const agent of agents) {
     if (!agent || typeof agent !== "object" || !isNonEmptyString(agent.id)) continue;
     const allowAgents = normalizeAllowAgents(agent.subagents);
+    if (new Set(allowAgents).size !== allowAgents.length) {
+      errors.push(`Agent "${agent.id}" includes duplicate subagent ids in allowAgents`);
+    }
     for (const target of allowAgents) {
+      if (target === agent.id) {
+        errors.push(`Agent "${agent.id}" cannot allow itself as a subagent`);
+      }
       if (!ids.has(target)) {
         errors.push(`Agent "${agent.id}" allows unknown subagent "${target}"`);
+      } else {
+        graph.get(agent.id).push(target);
       }
     }
 
@@ -112,6 +174,30 @@ function checkTopology(repoRoot) {
     }
     if (!mainAllow.includes("reliability_guardian")) {
       warnings.push('main does not allow "reliability_guardian"; oversight lane may break');
+    }
+  }
+
+  const cycles = detectCycles(graph);
+  for (const cycle of cycles) {
+    errors.push(`Subagent delegation cycle detected: ${cycle}`);
+  }
+
+  if (ids.has("main")) {
+    const reachable = reachableFrom(graph, "main");
+    for (const id of ids) {
+      if (!reachable.has(id)) {
+        warnings.push(`Agent "${id}" is not reachable from "main" and may never be delegated work`);
+      }
+    }
+  }
+
+  const templateDirs = fs
+    .readdirSync(templatesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  for (const templateId of templateDirs) {
+    if (!ids.has(templateId)) {
+      warnings.push(`Template directory "${templateId}" has no matching agent in topology`);
     }
   }
 
@@ -146,4 +232,3 @@ if (require.main === module) {
 module.exports = {
   checkTopology
 };
-

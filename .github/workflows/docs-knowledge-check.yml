@@ -26,6 +26,9 @@ jobs:
       - name: OpenClaw Topology Check
         run: node scripts/openclaw_topology_check.js
 
+      - name: Workflow Integrity Check
+        run: node scripts/workflow_integrity_check.js
+
       - name: Knowledge Base Lint
         run: node scripts/check_knowledge_base.js
 
@@ -38,3 +41,6 @@ jobs:
 
       - name: Pipeline Orchestrator Dry Run
         run: node scripts/pipeline_orchestrator_dry_run.js
+
+      - name: Workflow Syntax Lint (actionlint)
+        uses: rhysd/actionlint@v1

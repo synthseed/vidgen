@@ -31,7 +31,10 @@ const REQUIRED_FILES = [
   "scripts/AGENTS.md",
   "scripts/doc_gardener.js",
   "scripts/check_knowledge_base.js",
-  "scripts/security_preflight.js"
+  "scripts/security_preflight.js",
+  "scripts/workflow_integrity_check.js",
+  ".github/workflows/docs-knowledge-check.yml",
+  ".github/workflows/deploy-openclaw-vps.yml"
 ];
 
 const REQUIRED_METADATA = ["Owner", "Status", "Last Reviewed"];

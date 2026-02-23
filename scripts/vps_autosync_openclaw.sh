@@ -20,6 +20,9 @@ WHATSAPP_ALERT_ACCOUNT="${WHATSAPP_ALERT_ACCOUNT:-}"
 WHATSAPP_ALERT_PREFIX="${WHATSAPP_ALERT_PREFIX:-[vidgen-autosync]}"
 WHATSAPP_ALERT_MIN_INTERVAL_SEC="${WHATSAPP_ALERT_MIN_INTERVAL_SEC:-900}"
 WHATSAPP_ALERT_STATE_FILE="${WHATSAPP_ALERT_STATE_FILE:-/tmp/vidgen-openclaw-alert.state}"
+DIRTY_REPO_STRATEGY="${DIRTY_REPO_STRATEGY:-stash}"
+DIRTY_REPO_STASH_MESSAGE="${DIRTY_REPO_STASH_MESSAGE:-[vidgen-autosync] auto-stash before deploy}"
+DIRTY_REPO_BACKUP_PREFIX="${DIRTY_REPO_BACKUP_PREFIX:-autosync-backup}"
 TELEGRAM_ALERT_ENABLED="${TELEGRAM_ALERT_ENABLED:-0}"
 TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
@@ -289,6 +292,10 @@ require_cmd() {
   fi
 }
 
+ensure_git_safe_directory() {
+  git config --global --add safe.directory "$REPO_DIR" >/dev/null 2>&1 || true
+}
+
 acquire_lock() {
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$LOCK_FILE"
@@ -311,10 +318,47 @@ run_repo_checks_at() {
   log "running repository checks in ${dir}"
   cd "$dir"
   node scripts/openclaw_topology_check.js
+  node scripts/workflow_integrity_check.js
   node scripts/check_knowledge_base.js
   node scripts/doc_gardener.js
   node scripts/security_preflight.js --strict
   node scripts/pipeline_orchestrator_dry_run.js >/dev/null
+}
+
+handle_dirty_repo() {
+  local dirty
+  dirty="$(git status --porcelain || true)"
+  if [[ -z "$dirty" ]]; then
+    return 0
+  fi
+
+  case "$DIRTY_REPO_STRATEGY" in
+    fail)
+      fail "repository has local changes; refusing auto-sync"
+      ;;
+    stash)
+      local stamp stash_label
+      stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+      stash_label="${DIRTY_REPO_STASH_MESSAGE} ${stamp}"
+      if git stash push --include-untracked --message "$stash_label" >/dev/null; then
+        log "repository had local changes; stashed before deploy (${stash_label})"
+        return 0
+      fi
+      fail "failed to stash local changes before auto-sync"
+      ;;
+    reset)
+      local stamp backup_branch
+      stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+      backup_branch="${DIRTY_REPO_BACKUP_PREFIX}-${stamp}"
+      git branch "$backup_branch" >/dev/null 2>&1 || true
+      git reset --hard HEAD >/dev/null # security:allow optional reset strategy
+      git clean -fd >/dev/null
+      log "repository had local changes; reset worktree (backup branch: ${backup_branch})"
+      ;;
+    *)
+      fail "invalid DIRTY_REPO_STRATEGY=${DIRTY_REPO_STRATEGY}; expected fail|stash|reset"
+      ;;
+  esac
 }
 
 prepare_runtime_backup() {
@@ -407,15 +451,14 @@ main() {
   require_cmd node
   require_cmd docker
   acquire_lock
+  ensure_git_safe_directory
 
   cd "$REPO_DIR"
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     fail "REPO_DIR is not a git repository: $REPO_DIR"
   fi
 
-  if [[ -n "$(git status --porcelain)" ]]; then
-    fail "repository has local changes; refusing auto-sync"
-  fi
+  handle_dirty_repo
 
   local_current="$(git rev-parse HEAD)"
   last_success="$(read_last_success)"
