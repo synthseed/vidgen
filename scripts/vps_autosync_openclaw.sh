@@ -79,20 +79,52 @@ deployed_commit=${DEPLOYED_COMMIT:-n/a}
 time=${run_time}
 reason=${reason}"
 
-  local cmd=(docker compose exec -T "$OPENCLAW_SERVICE" openclaw message send \
-    --channel "$WHATSAPP_ALERT_CHANNEL" \
-    --target "$WHATSAPP_ALERT_TARGET" \
-    --message "$message")
-
-  if [[ -n "$WHATSAPP_ALERT_ACCOUNT" ]]; then
-    cmd+=(--account "$WHATSAPP_ALERT_ACCOUNT")
-  fi
-
   if ! cd "$PROJECT_DIR" 2>/dev/null; then
     log "warning: cannot enter PROJECT_DIR for whatsapp alert: $PROJECT_DIR"
     return 0
   fi
-  if "${cmd[@]}" >/dev/null 2>&1; then
+
+  if docker compose exec -T \
+    -e OC_ALERT_CHANNEL="$WHATSAPP_ALERT_CHANNEL" \
+    -e OC_ALERT_ACCOUNT="$WHATSAPP_ALERT_ACCOUNT" \
+    -e OC_ALERT_TARGET="$WHATSAPP_ALERT_TARGET" \
+    -e OC_ALERT_MESSAGE="$message" \
+    "$OPENCLAW_SERVICE" sh -lc '
+      set -e
+      GW_TOKEN=$(node -e "const fs=require(\"fs\");let token=\"\";try{const cfg=JSON.parse(fs.readFileSync(\"/data/.openclaw/openclaw.json\",\"utf8\"));token=(cfg.gateway&&cfg.gateway.auth&&cfg.gateway.auth.token)||\"\";}catch(_){ }process.stdout.write(token);")
+
+      if [ -n "$OC_ALERT_ACCOUNT" ]; then
+        if [ -n "$GW_TOKEN" ]; then
+          openclaw message send \
+            --url ws://127.0.0.1:18789 \
+            --token "$GW_TOKEN" \
+            --channel "$OC_ALERT_CHANNEL" \
+            --account "$OC_ALERT_ACCOUNT" \
+            --target "$OC_ALERT_TARGET" \
+            --message "$OC_ALERT_MESSAGE"
+        else
+          openclaw message send \
+            --channel "$OC_ALERT_CHANNEL" \
+            --account "$OC_ALERT_ACCOUNT" \
+            --target "$OC_ALERT_TARGET" \
+            --message "$OC_ALERT_MESSAGE"
+        fi
+      else
+        if [ -n "$GW_TOKEN" ]; then
+          openclaw message send \
+            --url ws://127.0.0.1:18789 \
+            --token "$GW_TOKEN" \
+            --channel "$OC_ALERT_CHANNEL" \
+            --target "$OC_ALERT_TARGET" \
+            --message "$OC_ALERT_MESSAGE"
+        else
+          openclaw message send \
+            --channel "$OC_ALERT_CHANNEL" \
+            --target "$OC_ALERT_TARGET" \
+            --message "$OC_ALERT_MESSAGE"
+        fi
+      fi
+    ' >/dev/null 2>&1; then
     mark_alert_sent
     log "whatsapp alert sent (${status})"
   else
