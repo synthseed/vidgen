@@ -20,6 +20,12 @@ WHATSAPP_ALERT_ACCOUNT="${WHATSAPP_ALERT_ACCOUNT:-}"
 WHATSAPP_ALERT_PREFIX="${WHATSAPP_ALERT_PREFIX:-[vidgen-autosync]}"
 WHATSAPP_ALERT_MIN_INTERVAL_SEC="${WHATSAPP_ALERT_MIN_INTERVAL_SEC:-900}"
 WHATSAPP_ALERT_STATE_FILE="${WHATSAPP_ALERT_STATE_FILE:-/tmp/vidgen-openclaw-alert.state}"
+TELEGRAM_ALERT_ENABLED="${TELEGRAM_ALERT_ENABLED:-0}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
+TELEGRAM_ALERT_PREFIX="${TELEGRAM_ALERT_PREFIX:-[vidgen-autosync]}"
+TELEGRAM_ALERT_MIN_INTERVAL_SEC="${TELEGRAM_ALERT_MIN_INTERVAL_SEC:-900}"
+TELEGRAM_ALERT_STATE_FILE="${TELEGRAM_ALERT_STATE_FILE:-/tmp/vidgen-openclaw-telegram-alert.state}"
 
 TARGET_COMMIT=""
 DEPLOYED_COMMIT=""
@@ -58,6 +64,76 @@ should_send_alert() {
 
 mark_alert_sent() {
   now_epoch >"$WHATSAPP_ALERT_STATE_FILE" 2>/dev/null || true
+}
+
+should_send_telegram_alert() {
+  if [[ "$TELEGRAM_ALERT_ENABLED" != "1" ]]; then
+    return 1
+  fi
+  if [[ -z "$TELEGRAM_BOT_TOKEN" || -z "$TELEGRAM_CHAT_ID" ]]; then
+    return 1
+  fi
+  if [[ ! -f "$TELEGRAM_ALERT_STATE_FILE" ]]; then
+    return 0
+  fi
+
+  local last_epoch current_epoch delta
+  last_epoch="$(cat "$TELEGRAM_ALERT_STATE_FILE" 2>/dev/null || true)"
+  if [[ -z "$last_epoch" ]]; then
+    return 0
+  fi
+  current_epoch="$(now_epoch)"
+  delta=$((current_epoch - last_epoch))
+  if (( delta >= TELEGRAM_ALERT_MIN_INTERVAL_SEC )); then
+    return 0
+  fi
+  return 1
+}
+
+mark_telegram_alert_sent() {
+  now_epoch >"$TELEGRAM_ALERT_STATE_FILE" 2>/dev/null || true
+}
+
+send_telegram_alert() {
+  local status="$1"
+  local reason="$2"
+
+  if ! should_send_telegram_alert; then
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    log "warning: failed to send telegram alert: curl not installed"
+    return 0
+  fi
+
+  local host_name run_time message response
+  host_name="$(hostname -s 2>/dev/null || hostname)"
+  run_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  message="${TELEGRAM_ALERT_PREFIX} ${status}
+host=${host_name}
+branch=${BRANCH}
+target_commit=${TARGET_COMMIT:-n/a}
+deployed_commit=${DEPLOYED_COMMIT:-n/a}
+time=${run_time}
+reason=${reason}"
+
+  response=$(curl -sS --max-time 20 \
+    -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+    --data-urlencode "text=${message}" \
+    --data-urlencode "disable_web_page_preview=true" 2>&1) || {
+    log "warning: failed to send telegram alert: ${response//$'\n'/ | }"
+    return 0
+  }
+
+  if echo "$response" | grep -q '"ok":true'; then
+    mark_telegram_alert_sent
+    log "telegram alert sent (${status})"
+    return 0
+  fi
+
+  log "warning: failed to send telegram alert: ${response//$'\n'/ | }"
 }
 
 send_whatsapp_alert() {
@@ -189,6 +265,7 @@ fail() {
   local reason="$1"
   log "$reason"
   send_whatsapp_alert "FAIL" "$reason"
+  send_telegram_alert "FAIL" "$reason"
   exit 1
 }
 
@@ -200,6 +277,7 @@ on_error() {
   reason="unexpected error (exit=${code}, line=${line}, cmd=${cmd})"
   log "$reason"
   send_whatsapp_alert "FAIL" "$reason"
+  send_telegram_alert "FAIL" "$reason"
   exit "$code"
 }
 

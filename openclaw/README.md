@@ -53,12 +53,18 @@ Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_POR
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
 
-Optional WhatsApp alerts for deployment failures:
+Optional Telegram alerts for deployment failures (recommended):
 1. Edit `/etc/default/vidgen-openclaw-autosync`.
-2. Set `WHATSAPP_ALERT_ENABLED=1`.
-3. Set `WHATSAPP_ALERT_TARGET=<your WhatsApp number>`.
-4. Optionally set `WHATSAPP_ALERT_ACCOUNT` if multiple WhatsApp accounts are configured.
-5. Restart/reload: `systemctl daemon-reload`.
+2. Set `TELEGRAM_ALERT_ENABLED=1`.
+3. Set `TELEGRAM_BOT_TOKEN=<bot token from BotFather>`.
+4. Set `TELEGRAM_CHAT_ID=<chat id>`.
+5. Optionally set `TELEGRAM_ALERT_MIN_INTERVAL_SEC=<seconds>`.
+6. Restart/reload: `systemctl daemon-reload`.
+
+Optional WhatsApp alerts are still supported, but they depend on OpenClaw gateway/device pairing:
+1. Set `WHATSAPP_ALERT_ENABLED=1`.
+2. Set `WHATSAPP_ALERT_TARGET=<your WhatsApp number or JID>`.
+3. Optionally set `WHATSAPP_ALERT_ACCOUNT` if multiple WhatsApp accounts are configured.
 
 The runner:
 1. Pulls latest `dev` commit.
@@ -67,7 +73,7 @@ The runner:
 4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
 6. Restores previous runtime config backup automatically if runtime verification fails.
-7. Sends WhatsApp failure alerts (with cooldown) when enabled.
+7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.
 
 This flow does not call model inference APIs; it uses git/docker/node/system checks only.
 
