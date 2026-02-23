@@ -24,6 +24,7 @@ This file is intentionally short. It is a map for coding agents, not an encyclop
 - `docs/SECURITY.md`: security controls and review requirements.
 - `docs/references/`: external API constraints copied into repo-visible context.
 - `docs/generated/`: generated artifacts (schemas, snapshots).
+- `openclaw/`: multi-agent routing config and per-role workspace templates.
 
 ## Required Workflow
 1. Confirm the target behavior in `docs/product-specs/` or add/update it first.

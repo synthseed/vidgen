@@ -30,6 +30,9 @@ isolated to adapter functions/modules.
 - `scripts/youtube_check.js`: OAuth refresh + channel read check.
 - `scripts/youtube_upload.js`: validated resumable upload workflow.
 - `scripts/youtube_upload_from_payload.js`: payload-based upload wrapper.
+- `scripts/pipeline_contracts.js`: artifact contract validation for autonomous stages.
+- `scripts/pipeline_state_machine.js`: deterministic stage transitions and gate behavior.
+- `scripts/pipeline_orchestrator_dry_run.js`: dry-run of end-to-end stage flow.
 
 ## Invariants
 - Use official platform APIs only (no YouTube page scraping).
@@ -42,4 +45,3 @@ isolated to adapter functions/modules.
 - Script composition module with review gates.
 - Render provider adapter interface for Seedance 2.0 or equivalent backends.
 - End-to-end orchestrator with idempotent job state.
-

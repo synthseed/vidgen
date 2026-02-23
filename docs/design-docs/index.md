@@ -7,6 +7,7 @@ Catalog of design docs with verification state.
 
 ## Docs
 - `core-beliefs.md` (verified 2026-02-23): agent-first operating principles.
+- `openclaw-autonomous-agent-fleet.md` (verified 2026-02-23): multi-agent topology, identity model, and repo fit assessment.
 
 ## Verification Policy
 - `verified`: reviewed against code or current architecture within 30 days.
@@ -17,4 +18,3 @@ Catalog of design docs with verification state.
 - `../DESIGN.md`
 - `../../ARCHITECTURE.md`
 - `../QUALITY_SCORE.md`
-

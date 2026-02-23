@@ -10,6 +10,7 @@ function shouldTrack(relPath) {
   if (relPath === "ARCHITECTURE.md") return true;
   if (relPath.endsWith("/AGENTS.md")) return true;
   if (relPath.startsWith("docs/")) return true;
+  if (relPath.startsWith("openclaw/") && relPath.endsWith(".md")) return true;
   return false;
 }
 

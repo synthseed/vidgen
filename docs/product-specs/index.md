@@ -8,6 +8,7 @@ Behavior contracts live here. Code changes must align to an existing spec or upd
 ## Specs
 - `youtube-upload.md`: current publish workflow and constraints.
 - `trend-to-video-pipeline.md`: target end-to-end workflow.
+- `autonomous-agent-fleet.md`: role contracts and autonomous execution gates.
 
 ## Acceptance Rule
 Every behavior-changing PR must cite at least one spec in this directory.
@@ -16,4 +17,3 @@ Every behavior-changing PR must cite at least one spec in this directory.
 - `../PRODUCT_SENSE.md`
 - `../QUALITY_SCORE.md`
 - `../../ARCHITECTURE.md`
-

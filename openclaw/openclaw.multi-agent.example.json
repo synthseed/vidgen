@@ -1,0 +1,104 @@
+{
+  "messages": {
+    "queue": {
+      "mode": "collect",
+      "byChannel": {
+        "discord": {
+          "mode": "collect"
+        }
+      }
+    }
+  },
+  "tools": {
+    "subagents": {
+      "enabled": true,
+      "tools": {
+        "allow": [
+          "read_file",
+          "write_file",
+          "web_fetch"
+        ],
+        "deny": [
+          "shell_exec"
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "enabled": true,
+        "maxSpawnDepth": 2,
+        "maxChildrenPerAgent": 4,
+        "maxConcurrent": 8
+      },
+      "sandbox": {
+        "mode": "workspace-write",
+        "scope": "session"
+      }
+    },
+    "list": [
+      {
+        "id": "director",
+        "agentDir": "director",
+        "subagents": {
+          "allowAgents": [
+            "trend_researcher",
+            "script_writer",
+            "continuity_reviewer",
+            "render_operator",
+            "publisher",
+            "reliability_guardian"
+          ],
+          "maxChildrenPerAgent": 2
+        }
+      },
+      {
+        "id": "trend_researcher",
+        "agentDir": "trend_researcher",
+        "subagents": {
+          "enabled": false
+        }
+      },
+      {
+        "id": "script_writer",
+        "agentDir": "script_writer",
+        "subagents": {
+          "allowAgents": [
+            "trend_researcher"
+          ],
+          "maxSpawnDepth": 1
+        }
+      },
+      {
+        "id": "continuity_reviewer",
+        "agentDir": "continuity_reviewer",
+        "subagents": {
+          "enabled": false
+        }
+      },
+      {
+        "id": "render_operator",
+        "agentDir": "render_operator",
+        "subagents": {
+          "enabled": false
+        }
+      },
+      {
+        "id": "publisher",
+        "agentDir": "publisher",
+        "subagents": {
+          "enabled": false
+        }
+      },
+      {
+        "id": "reliability_guardian",
+        "agentDir": "reliability_guardian",
+        "subagents": {
+          "enabled": false
+        }
+      }
+    ]
+  }
+}
+

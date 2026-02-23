@@ -42,8 +42,12 @@ Generate and publish YouTube videos from trend signals with continuity review an
 - Retryable failures without duplicate publish.
 - Full audit record stored in run artifacts.
 
+## Related Code
+- `../../scripts/pipeline_contracts.js`
+- `../../scripts/pipeline_state_machine.js`
+- `../../scripts/pipeline_orchestrator_dry_run.js`
+
 ## Related Docs
 - `../../ARCHITECTURE.md`
 - `../QUALITY_SCORE.md`
 - `../exec-plans/tech-debt-tracker.md`
-

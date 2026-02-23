@@ -1,0 +1,34 @@
+{
+  // Copy this file to a local-only path outside the repository:
+  //   /etc/openclaw/openclaw.private.json5
+  //
+  // Do not commit secrets.
+
+  gateway: {
+    mode: "standalone"
+  },
+
+  auth: {
+    // Define auth profiles here.
+  },
+
+  channels: {
+    // Define Discord/Slack/WhatsApp/etc channel bindings here.
+  },
+
+  sessions: {
+    // Define session and queue behavior here.
+  },
+
+  security: {
+    // Local security policies and permission controls.
+  },
+
+  tools: {
+    // Local tool permissions and providers.
+  },
+
+  env: {
+    // Reference env vars only; do not inline secrets.
+  }
+}

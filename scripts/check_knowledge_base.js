@@ -26,6 +26,11 @@ const REQUIRED_FILES = [
   "docs/product-specs/trend-to-video-pipeline.md",
   "docs/references/youtube-data-api-notes.md",
   "docs/references/openai-harness-engineering-notes.md",
+  "openclaw/README.md",
+  "openclaw/openclaw.json",
+  "openclaw/openclaw.private.template.json5",
+  "openclaw/openclaw.local-root.template.json5",
+  "openclaw/vps-docker-setup.md",
   "scripts/AGENTS.md",
   "scripts/doc_gardener.js",
   "scripts/check_knowledge_base.js",
@@ -39,6 +44,7 @@ function shouldValidateMetadata(relPath) {
   if (relPath === "ARCHITECTURE.md") return true;
   if (relPath.endsWith("/AGENTS.md")) return true;
   if (relPath.startsWith("docs/")) return true;
+  if (relPath.startsWith("openclaw/") && relPath.endsWith(".md")) return true;
   return false;
 }
 
