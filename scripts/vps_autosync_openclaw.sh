@@ -84,53 +84,48 @@ reason=${reason}"
     return 0
   fi
 
-  if docker compose exec -T \
+  local alert_output
+  if alert_output=$(docker compose exec -T \
     -e OC_ALERT_CHANNEL="$WHATSAPP_ALERT_CHANNEL" \
     -e OC_ALERT_ACCOUNT="$WHATSAPP_ALERT_ACCOUNT" \
     -e OC_ALERT_TARGET="$WHATSAPP_ALERT_TARGET" \
     -e OC_ALERT_MESSAGE="$message" \
     "$OPENCLAW_SERVICE" sh -lc '
-      set -e
-      GW_TOKEN=$(node -e "const fs=require(\"fs\");let token=\"\";try{const cfg=JSON.parse(fs.readFileSync(\"/data/.openclaw/openclaw.json\",\"utf8\"));token=(cfg.gateway&&cfg.gateway.auth&&cfg.gateway.auth.token)||\"\";}catch(_){ }process.stdout.write(token);")
+      set +e
+
+      send_with_account() {
+        openclaw message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --account "$OC_ALERT_ACCOUNT" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
+
+      send_without_account() {
+        openclaw message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
 
       if [ -n "$OC_ALERT_ACCOUNT" ]; then
-        if [ -n "$GW_TOKEN" ]; then
-          openclaw \
-            --url ws://127.0.0.1:18789 \
-            --token "$GW_TOKEN" \
-            message send \
-            --channel "$OC_ALERT_CHANNEL" \
-            --account "$OC_ALERT_ACCOUNT" \
-            --target "$OC_ALERT_TARGET" \
-            --message "$OC_ALERT_MESSAGE"
-        else
-          openclaw message send \
-            --channel "$OC_ALERT_CHANNEL" \
-            --account "$OC_ALERT_ACCOUNT" \
-            --target "$OC_ALERT_TARGET" \
-            --message "$OC_ALERT_MESSAGE"
-        fi
-      else
-        if [ -n "$GW_TOKEN" ]; then
-          openclaw \
-            --url ws://127.0.0.1:18789 \
-            --token "$GW_TOKEN" \
-            message send \
-            --channel "$OC_ALERT_CHANNEL" \
-            --target "$OC_ALERT_TARGET" \
-            --message "$OC_ALERT_MESSAGE"
-        else
-          openclaw message send \
-            --channel "$OC_ALERT_CHANNEL" \
-            --target "$OC_ALERT_TARGET" \
-            --message "$OC_ALERT_MESSAGE"
+        OUT=$(send_with_account 2>&1)
+        CODE=$?
+        if [ "$CODE" -eq 0 ]; then
+          printf "%s\n" "$OUT"
+          exit 0
         fi
       fi
-    ' >/dev/null 2>&1; then
+
+      OUT=$(send_without_account 2>&1)
+      CODE=$?
+      printf "%s\n" "$OUT" >&2
+      exit "$CODE"
+    ' 2>&1); then
     mark_alert_sent
     log "whatsapp alert sent (${status})"
   else
-    log "warning: failed to send whatsapp alert"
+    log "warning: failed to send whatsapp alert: ${alert_output//$'\n'/ | }"
   fi
 }
 
