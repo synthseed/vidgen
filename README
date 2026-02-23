@@ -1,1 +1,29 @@
+# vidgen
 
+Agent-first video automation repository.
+
+## Human Quickstart
+- Architecture: `ARCHITECTURE.md`
+- Agent map: `AGENTS.md`
+- Product specs: `docs/product-specs/index.md`
+- Execution plans: `docs/PLANS.md`
+
+## Current Scope
+- YouTube OAuth channel check: `scripts/youtube_check.js`
+- YouTube resumable upload CLI: `scripts/youtube_upload.js`
+- Payload-driven upload wrapper: `scripts/youtube_upload_from_payload.js`
+
+## Required Env Vars
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `YOUTUBE_REFRESH_TOKEN`
+
+Optional:
+- `YOUTUBE_DEFAULT_PRIVACY`
+- `YOUTUBE_DEFAULT_CATEGORY_ID`
+- `YOUTUBE_MADE_FOR_KIDS`
+
+## Quality Gates
+- `node scripts/check_knowledge_base.js`
+- `node scripts/doc_gardener.js`
+- `node scripts/security_preflight.js`
