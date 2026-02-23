@@ -54,6 +54,7 @@ and safe layered config ownership between repo and local private environment.
 - 2026-02-23: Runtime host layering validated; gateway/pairing recovered and re-locked.
 - 2026-02-23: Added continuity/publish gate enforcement and runtime template sync script for agent workspaces.
 - 2026-02-23: Added automated topology apply + template sync + health verification + rollback runner for VPS.
+- 2026-02-23: Added event-driven GitHub Actions deploy to VPS after successful `Docs Knowledge Check`.
 
 ## Related Docs
 - `../../../openclaw/README.md`

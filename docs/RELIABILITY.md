@@ -13,7 +13,8 @@ Last Reviewed: 2026-02-23
 - Dry-run mode to verify metadata without publishing.
 - OAuth token refresh before API calls.
 - CI checks on `dev/main` push for topology/docs/security/orchestrator dry-run.
-- VPS auto-sync runner with health verification and rollback.
+- Event-driven VPS deploy after CI pass, with auto-sync runner for apply/verify/rollback.
+- Optional hourly fallback timer for disconnected webhook periods.
 
 ## Required Next Controls
 - Retry policy for resumable upload failures.

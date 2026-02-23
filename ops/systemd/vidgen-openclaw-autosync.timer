@@ -1,13 +1,12 @@
 [Unit]
-Description=Run Vidgen OpenClaw Auto Sync every minute
+Description=Run Vidgen OpenClaw Auto Sync fallback timer
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=1min
+OnUnitActiveSec=1h
 AccuracySec=15s
 Persistent=true
 Unit=vidgen-openclaw-autosync.service
 
 [Install]
 WantedBy=timers.target
-

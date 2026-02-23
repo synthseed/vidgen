@@ -47,7 +47,10 @@ The sync script auto-detects both runtime layouts:
 It always syncs both paths so UI context remains consistent across mixed layouts.
 
 ## Automated VPS Sync
-Use the host-side auto-sync runner to reduce manual pull/apply steps:
+Primary mode is event-driven deploy from GitHub Actions after checks pass on `dev`.
+Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_PORT`).
+
+Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
 
 The runner:
@@ -57,6 +60,8 @@ The runner:
 4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
 6. Restores previous runtime config backup automatically if runtime verification fails.
+
+This flow does not call model inference APIs; it uses git/docker/node/system checks only.
 
 ## Related Docs
 - `../docs/design-docs/openclaw-autonomous-agent-fleet.md`
