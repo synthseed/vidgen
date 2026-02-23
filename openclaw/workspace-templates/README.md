@@ -4,6 +4,7 @@ Status: active
 Last Reviewed: 2026-02-23
 
 Role templates included:
+- `main`
 - `director`
 - `trend_researcher`
 - `script_writer`
@@ -18,4 +19,3 @@ Each role folder contains:
 - `IDENTITY.md` (agent persona fields)
 
 Copy these into the corresponding OpenClaw agent workspaces and keep them versioned.
-

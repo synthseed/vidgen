@@ -6,7 +6,7 @@ Last Reviewed: 2026-02-23
 This folder contains the repository-owned OpenClaw artifacts used by the live VPS runtime.
 
 ## Contents
-- `openclaw.json`: repo-managed production topology (agents only, no local auth/security/channel values).
+- `openclaw.json`: repo-managed production topology (includes default admin agent `main`).
 - `workspace-templates/`: per-agent identity templates:
   - `AGENTS.md`
   - `SOUL.md`
@@ -16,6 +16,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 1. Keep repo ownership limited to `openclaw/openclaw.json` and role identity templates.
 2. Keep live VPS private settings (auth, channels, sessions, security, env secrets) outside this repo.
 3. Keep role-critical decisions on role main sessions to preserve identity context.
+4. Keep `main` as the default admin entry point; delegate execution work to specialist agents.
 
 ## Live Validation Commands
 Run in the live OpenClaw container/host:

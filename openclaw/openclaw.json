@@ -2,6 +2,23 @@
   "agents": {
     "list": [
       {
+        "id": "main",
+        "agentDir": "main",
+        "default": true,
+        "subagents": {
+          "allowAgents": [
+            "director",
+            "trend_researcher",
+            "script_writer",
+            "continuity_reviewer",
+            "render_operator",
+            "publisher",
+            "reliability_guardian"
+          ],
+          "maxChildrenPerAgent": 3
+        }
+      },
+      {
         "id": "director",
         "agentDir": "director",
         "subagents": {
@@ -64,4 +81,3 @@
     ]
   }
 }
-

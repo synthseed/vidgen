@@ -29,17 +29,18 @@ sub-agent spawns. Route critical work through dedicated agent IDs/workspaces so 
 with its own full prompt context and memory.
 
 ## Recommended Agent Team
-1. `director`: planner/router; owns state machine and acceptance gates.
-2. `trend_researcher`: API-driven trend intake and source validation.
-3. `script_writer`: script package generation (narration, scenes, on-screen text, metadata draft).
-4. `continuity_reviewer`: continuity and detail-gap analysis with structured fix list.
-5. `render_operator`: render provider adapter execution and artifact manifest.
-6. `publisher`: YouTube metadata + upload + publish-state transitions.
-7. `reliability_guardian`: observability, retries, incident handling, and policy checks.
+1. `main`: default admin and request entrypoint; delegates to specialist roles.
+2. `director`: planner/router; owns state machine and acceptance gates.
+3. `trend_researcher`: API-driven trend intake and source validation.
+4. `script_writer`: script package generation (narration, scenes, on-screen text, metadata draft).
+5. `continuity_reviewer`: continuity and detail-gap analysis with structured fix list.
+6. `render_operator`: render provider adapter execution and artifact manifest.
+7. `publisher`: YouTube metadata + upload + publish-state transitions.
+8. `reliability_guardian`: observability, retries, incident handling, and policy checks.
 
 ## Routing Model
 - Primary flow:
-  `director -> trend_researcher -> script_writer -> continuity_reviewer -> render_operator -> publisher`.
+  `main -> director -> trend_researcher -> script_writer -> continuity_reviewer -> render_operator -> publisher`.
 - Oversight lane:
   `reliability_guardian` receives event stream and can halt/pause runs.
 - Sub-agent use:

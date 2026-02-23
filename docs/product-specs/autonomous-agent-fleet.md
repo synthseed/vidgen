@@ -8,25 +8,28 @@ Enable autonomous teams of specialized agents to develop and execute the vidgen 
 with deterministic handoffs, safety gates, and role-specific identity.
 
 ## Role Contracts
-1. `director`
+1. `main`
+   - Input: top-level user requests and policy constraints.
+   - Output: delegation decision and admin-level approvals/halts.
+2. `director`
    - Input: run intent + constraints.
    - Output: run plan, role assignments, gate decisions.
-2. `trend_researcher`
+3. `trend_researcher`
    - Input: topic scope and region constraints.
    - Output: ranked trend dossier with source evidence.
-3. `script_writer`
+4. `script_writer`
    - Input: approved trend dossier.
    - Output: script package with narration, scenes, text overlays, asset plan.
-4. `continuity_reviewer`
+5. `continuity_reviewer`
    - Input: script package.
    - Output: review report (`pass|needs_fixes`) and mandatory fix list.
-5. `render_operator`
+6. `render_operator`
    - Input: approved script package.
    - Output: render job receipt, artifact manifest, render logs.
-6. `publisher`
+7. `publisher`
    - Input: approved artifacts + metadata.
    - Output: publish receipt, video URL, publishing status.
-7. `reliability_guardian`
+8. `reliability_guardian`
    - Input: events/logs from all stages.
    - Output: health signals, halt decisions, incident artifacts.
 
@@ -69,4 +72,3 @@ with deterministic handoffs, safety gates, and role-specific identity.
 - `../RELIABILITY.md`
 - `../design-docs/openclaw-autonomous-agent-fleet.md`
 - `trend-to-video-pipeline.md`
-
