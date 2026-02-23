@@ -425,6 +425,18 @@ run_optional_gateway_check() {
   return 1
 }
 
+run_runtime_file_check() {
+  local output
+  if output=$(docker compose exec -T "$OPENCLAW_SERVICE" \
+    node -e "const fs=require('fs');const p='${OPENCLAW_HOME}/openclaw.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(!j.agents||!Array.isArray(j.agents.list)||j.agents.list.length===0){throw new Error('agents.list missing or empty')}if(!j.agents.list.some((a)=>a&&a.id==='main')){throw new Error('main agent missing')}console.log('ok');" 2>&1); then
+    log "runtime file check passed"
+    return 0
+  fi
+
+  log "runtime file check failed: ${output//$'\n'/ | }"
+  return 1
+}
+
 run_runtime_verify() {
   log "restarting $OPENCLAW_SERVICE and verifying health"
   cd "$PROJECT_DIR"
@@ -433,7 +445,7 @@ run_runtime_verify() {
   sleep "$SLEEP_AFTER_RESTART" || return 1
   wait_for_openclaw_container_ready 20 2 || return 1
 
-  docker compose exec -T "$OPENCLAW_SERVICE" openclaw config get agents.list >/dev/null || return 1
+  run_runtime_file_check || return 1
   run_optional_gateway_check "openclaw doctor" openclaw doctor || return 1
   run_optional_gateway_check "openclaw models status --agent main --check" openclaw models status --agent main --check || return 1
 
