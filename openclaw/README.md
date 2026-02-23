@@ -52,6 +52,8 @@ Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_POR
 
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
+- One-command run + status: `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_run_once.sh`
+- One-command status snapshot: `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh`
 
 Recommended autosync safety setting:
 1. Edit `/etc/default/vidgen-openclaw-autosync`.
