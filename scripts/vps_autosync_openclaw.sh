@@ -93,8 +93,26 @@ reason=${reason}"
     "$OPENCLAW_SERVICE" sh -lc '
       set +e
 
+      GW_TOKEN=$(node -e "const fs=require(\"fs\");let token=\"\";try{const cfg=JSON.parse(fs.readFileSync(\"/data/.openclaw/openclaw.json\",\"utf8\"));token=(cfg.gateway&&cfg.gateway.auth&&cfg.gateway.auth.token)||\"\";}catch(_){ }process.stdout.write(token);")
+
       send_with_account() {
         openclaw message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --account "$OC_ALERT_ACCOUNT" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
+
+      send_with_account_token_flag() {
+        openclaw --token "$GW_TOKEN" message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --account "$OC_ALERT_ACCOUNT" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
+
+      send_with_account_token_env() {
+        OPENCLAW_GATEWAY_TOKEN="$GW_TOKEN" openclaw message send \
           --channel "$OC_ALERT_CHANNEL" \
           --account "$OC_ALERT_ACCOUNT" \
           --target "$OC_ALERT_TARGET" \
@@ -108,6 +126,20 @@ reason=${reason}"
           --message "$OC_ALERT_MESSAGE"
       }
 
+      send_without_account_token_flag() {
+        openclaw --token "$GW_TOKEN" message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
+
+      send_without_account_token_env() {
+        OPENCLAW_GATEWAY_TOKEN="$GW_TOKEN" openclaw message send \
+          --channel "$OC_ALERT_CHANNEL" \
+          --target "$OC_ALERT_TARGET" \
+          --message "$OC_ALERT_MESSAGE"
+      }
+
       if [ -n "$OC_ALERT_ACCOUNT" ]; then
         OUT=$(send_with_account 2>&1)
         CODE=$?
@@ -115,10 +147,34 @@ reason=${reason}"
           printf "%s\n" "$OUT"
           exit 0
         fi
+
+        if [ -n "$GW_TOKEN" ]; then
+          OUT=$(send_with_account_token_flag 2>&1)
+          CODE=$?
+          if [ "$CODE" -eq 0 ]; then
+            printf "%s\n" "$OUT"
+            exit 0
+          fi
+
+          OUT=$(send_with_account_token_env 2>&1)
+          CODE=$?
+          if [ "$CODE" -eq 0 ]; then
+            printf "%s\n" "$OUT"
+            exit 0
+          fi
+        fi
       fi
 
       OUT=$(send_without_account 2>&1)
       CODE=$?
+      if [ "$CODE" -ne 0 ] && [ -n "$GW_TOKEN" ]; then
+        OUT=$(send_without_account_token_flag 2>&1)
+        CODE=$?
+      fi
+      if [ "$CODE" -ne 0 ] && [ -n "$GW_TOKEN" ]; then
+        OUT=$(send_without_account_token_env 2>&1)
+        CODE=$?
+      fi
       printf "%s\n" "$OUT" >&2
       exit "$CODE"
     ' 2>&1); then
