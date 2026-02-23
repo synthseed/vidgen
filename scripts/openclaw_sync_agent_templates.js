@@ -74,17 +74,17 @@ function unique(items) {
 }
 
 function resolveTargetDirs(openclawHome, agentId) {
-  const candidates = [
-    path.join(openclawHome, "agents", agentId, "agent"),
-    path.join(openclawHome, "workspaces", "agents", agentId, "agent"),
-    path.join(openclawHome, `workspace-${agentId}`)
-  ];
+  const primary = path.join(openclawHome, "agents", agentId, "agent");
+  const legacyWorkspace = path.join(openclawHome, `workspace-${agentId}`);
+  const nestedWorkspace = path.join(openclawHome, "workspaces", "agents", agentId, "agent");
 
-  const existing = candidates.filter((dirPath) => fs.existsSync(dirPath));
-  if (existing.length > 0) return unique(existing);
-
-  // Fallback for fresh installs where no agent workspace exists yet.
-  return [candidates[0]];
+  // Always sync primary and legacy workspace paths.
+  // Include nested workspace path only when it already exists.
+  const targets = [primary, legacyWorkspace];
+  if (fs.existsSync(nestedWorkspace)) {
+    targets.push(nestedWorkspace);
+  }
+  return unique(targets);
 }
 
 function run() {

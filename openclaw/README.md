@@ -44,6 +44,7 @@ If specialist agents appear without workspace identity files in the UI, sync tem
 The sync script auto-detects both runtime layouts:
 - `/data/.openclaw/agents/<agentId>/agent`
 - `/data/.openclaw/workspace-<agentId>` (legacy/workspace-style)
+It always syncs both paths so UI context remains consistent across mixed layouts.
 
 ## Related Docs
 - `../docs/design-docs/openclaw-autonomous-agent-fleet.md`
