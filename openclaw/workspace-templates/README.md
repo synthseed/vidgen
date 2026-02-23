@@ -19,3 +19,8 @@ Each role folder contains:
 - `IDENTITY.md` (agent persona fields)
 
 Copy these into the corresponding OpenClaw agent workspaces and keep them versioned.
+
+Current operating model:
+- `main` is global admin/overseer.
+- `director` is the video project lead.
+- Remaining roles are video specialists plus reliability oversight.

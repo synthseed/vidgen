@@ -21,11 +21,11 @@ and safe layered config ownership between repo and local private environment.
 - [x] Create repo-owned production topology file (`openclaw/openclaw.json`).
 - [x] Define repo-vs-runtime config ownership boundary.
 - [x] Add VPS runtime guidance for layered config without storing private files in repo.
-- [ ] Apply layered runtime-host config and validate startup.
+- [x] Apply layered runtime-host config and validate startup.
 - [ ] Bind channels to role agent IDs in local private config.
 - [x] Add orchestration run schema (`RunEnvelope`, stage artifacts) to codebase.
 - [x] Implement director-driven stage state machine with gate enforcement.
-- [ ] Implement continuity review gate and publish gate integration.
+- [x] Implement continuity review gate and publish gate integration.
 - [ ] Run one full end-to-end test from trend intake to private upload.
 
 ## Validation
@@ -49,7 +49,8 @@ and safe layered config ownership between repo and local private environment.
 - 2026-02-23: Switched setup guidance to VPS Docker runtime model.
 - 2026-02-23: Added orchestration contracts and deterministic state-machine scaffolding.
 - 2026-02-23: Removed bootstrap/deployment template files to avoid redundant artifacts in a live environment.
-- 2026-02-23: Runtime host application and channel binding still pending.
+- 2026-02-23: Runtime host layering validated; gateway/pairing recovered and re-locked.
+- 2026-02-23: Added continuity/publish gate enforcement and runtime template sync script for agent workspaces.
 
 ## Related Docs
 - `../../../openclaw/README.md`

@@ -33,7 +33,7 @@ function transitions() {
       artifact: {
         hook: "This trend is moving faster than most creators realize.",
         scenes: [{ id: "scene-1", objective: "setup trend context" }],
-        assetPlan: [{ type: "image", prompt: "dashboard trend chart" }]
+        assetPlan: [{ sceneId: "scene-1", type: "image", prompt: "dashboard trend chart" }]
       }
     },
     {
@@ -67,6 +67,12 @@ function transitions() {
       transitionId: "t7",
       stage: "publish",
       decision: "pass",
+      gates: {
+        securityPassed: true,
+        policyPassed: true,
+        reviewPassed: true,
+        qaPassed: true
+      },
       artifact: {
         videoId: "yt-demo-id",
         videoUrl: "https://www.youtube.com/watch?v=yt-demo-id",
@@ -95,4 +101,3 @@ function main() {
 }
 
 main();
-

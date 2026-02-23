@@ -4,20 +4,17 @@
       {
         "id": "main",
         "default": true,
+        "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
             "director",
-            "trend_researcher",
-            "script_writer",
-            "continuity_reviewer",
-            "render_operator",
-            "publisher",
             "reliability_guardian"
           ]
         }
       },
       {
         "id": "director",
+        "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
             "trend_researcher",

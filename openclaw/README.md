@@ -16,8 +16,19 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 1. Keep repo ownership limited to `openclaw/openclaw.json` and role identity templates.
 2. Keep live VPS private settings (auth, channels, sessions, security, env secrets) outside this repo.
 3. Keep role-critical decisions on role main sessions to preserve identity context.
-4. Keep `main` as the default admin entry point; delegate execution work to specialist agents.
+4. Keep `main` as the default admin entry point; delegate project execution to project leads.
 5. Do not use relative `agentDir` paths; use OpenClaw defaults or absolute writable paths only.
+
+## Team Pattern (Current)
+- Global overseer: `main` (admin default, continuity + security + safe remediation).
+- Project lead (video generation): `director`.
+- Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
+- Cross-team safety lane: `reliability_guardian`.
+
+## Do Agents Need Their Own AGENTS.md?
+- Not every possible agent must have one.
+- Every active role that is expected to make decisions or perform distinct work should have its own `AGENTS.md`.
+- In practice for this repo, each active role also keeps `SOUL.md` and `IDENTITY.md` to preserve stable behavior.
 
 ## Live Validation Commands
 Run in the live OpenClaw container/host:
@@ -25,6 +36,11 @@ Run in the live OpenClaw container/host:
 - `openclaw config get agents.list`
 - `openclaw config get channels`
 - `openclaw config get gateway.mode`
+
+## Runtime Template Sync
+If specialist agents appear without workspace identity files in the UI, sync templates into runtime workspaces:
+- `node /data/repos/vidgen/scripts/openclaw_sync_agent_templates.js --openclaw-home /data/.openclaw`
+- Dry run: `node /data/repos/vidgen/scripts/openclaw_sync_agent_templates.js --openclaw-home /data/.openclaw --dry-run`
 
 ## Related Docs
 - `../docs/design-docs/openclaw-autonomous-agent-fleet.md`

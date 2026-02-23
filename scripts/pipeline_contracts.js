@@ -42,6 +42,16 @@ function validateTrendDossier(input) {
   return result(errors);
 }
 
+function validateTopicRanking(input) {
+  const errors = [];
+  if (!isObject(input)) return result(["TopicRanking must be an object"]);
+
+  if (!isString(input.selectedTopic)) errors.push("TopicRanking.selectedTopic is required");
+  if (!isString(input.rationale)) errors.push("TopicRanking.rationale is required");
+
+  return result(errors);
+}
+
 function validateScriptPackage(input) {
   const errors = [];
   if (!isObject(input)) return result(["ScriptPackage must be an object"]);
@@ -107,6 +117,8 @@ function validateArtifact(stage, artifact) {
   switch (stage) {
     case "trend_intake":
       return validateTrendDossier(artifact);
+    case "topic_ranking":
+      return validateTopicRanking(artifact);
     case "script_composition":
       return validateScriptPackage(artifact);
     case "continuity_review":
@@ -126,6 +138,7 @@ function validateArtifact(stage, artifact) {
 module.exports = {
   validateRunEnvelope,
   validateTrendDossier,
+  validateTopicRanking,
   validateScriptPackage,
   validateContinuityReport,
   validateRenderManifest,
@@ -133,4 +146,3 @@ module.exports = {
   validateOpsLog,
   validateArtifact
 };
-
