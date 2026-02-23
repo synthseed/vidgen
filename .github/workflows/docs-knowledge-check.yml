@@ -43,4 +43,4 @@ jobs:
         run: node scripts/pipeline_orchestrator_dry_run.js
 
       - name: Workflow Syntax Lint (actionlint)
-        uses: rhysd/actionlint@v1
+        uses: reviewdog/action-actionlint@v1

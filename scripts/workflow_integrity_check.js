@@ -49,7 +49,7 @@ function main() {
       "node scripts/check_knowledge_base.js",
       "node scripts/security_preflight.js --strict",
       "node scripts/pipeline_orchestrator_dry_run.js",
-      "uses: rhysd/actionlint@"
+      "uses: reviewdog/action-actionlint@v1"
     ],
     errors
   );
@@ -125,4 +125,3 @@ try {
   console.error(error.message || error);
   process.exit(1);
 }
-
