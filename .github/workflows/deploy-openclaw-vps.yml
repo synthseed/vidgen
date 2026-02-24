@@ -52,14 +52,14 @@ jobs:
             exit 0
           fi
 
-          if [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "ts_auth_mode=oauth" >> "$GITHUB_OUTPUT"
-            echo "Deploy secrets detected (OAuth mode)."
-          elif [ -n "$TAILSCALE_AUTHKEY" ]; then
+          if [ -n "$TAILSCALE_AUTHKEY" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
             echo "ts_auth_mode=authkey" >> "$GITHUB_OUTPUT"
             echo "Deploy secrets detected (authkey mode)."
+          elif [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=oauth" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets detected (OAuth mode)."
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "ts_auth_mode=none" >> "$GITHUB_OUTPUT"
