@@ -58,13 +58,52 @@ jobs:
           echo "::error::Missing required deploy secrets (VPS_HOST, VPS_USER, VPS_SSH_KEY)."
           exit 1
 
+      - name: Normalize VPS Port
+        id: vps_port
+        env:
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          if [ -n "${VPS_PORT}" ]; then
+            echo "value=${VPS_PORT}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=22" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare SSH Key
+        id: ssh_key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/vps_deploy_ssh_key"
+          printf '%s' "$VPS_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$KEY_PATH"
+          if ! grep -Eq 'BEGIN (OPENSSH|RSA|EC|DSA|ED25519) PRIVATE KEY' "$KEY_PATH"; then
+            echo "::error::VPS_SSH_KEY is not a valid private key payload."
+            exit 1
+          fi
+          chmod 600 "$KEY_PATH"
+          echo "path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Preflight SSH Reachability
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.vps_port.outputs.value }}
+        run: |
+          set -euo pipefail
+          if timeout 5 bash -c "</dev/tcp/${VPS_HOST}/${VPS_PORT}"; then
+            echo "SSH reachability OK: ${VPS_HOST}:${VPS_PORT}"
+          else
+            echo "::error::Cannot reach ${VPS_HOST}:${VPS_PORT}. Check firewall, VPS SSH service, or port."
+            exit 1
+          fi
+
       - name: Deploy to VPS over SSH
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT != '' && secrets.VPS_PORT || '22' }}
+          key_path: ${{ steps.ssh_key.outputs.path }}
+          port: ${{ steps.vps_port.outputs.value }}
           command_timeout: 40m
           script: |
             set -e
@@ -80,8 +119,8 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT != '' && secrets.VPS_PORT || '22' }}
+          key_path: ${{ steps.ssh_key.outputs.path }}
+          port: ${{ steps.vps_port.outputs.value }}
           command_timeout: 20m
           script: |
             set -e
@@ -97,8 +136,8 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT != '' && secrets.VPS_PORT || '22' }}
+          key_path: ${{ steps.ssh_key.outputs.path }}
+          port: ${{ steps.vps_port.outputs.value }}
           command_timeout: 20m
           script: |
             set +e
