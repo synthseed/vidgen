@@ -47,6 +47,13 @@ node scripts/doc_gardener.js
 - Open incident note and remediation tasks.
 - Re-run dry-run only after fixes are merged to `dev`.
 
+## Self-Heal + Learning Loop
+1. CI failure triggers `failure_feedback` job in `autonomous-pipeline.yml`.
+2. Team captures first failing gate and applies minimal targeted fix.
+3. Re-run `bash scripts/supervised_dry_run.sh` before pushing retry.
+4. Log root cause + prevention action in `docs/ops/autonomy-smoke-log.md`.
+5. If systemic, update guard scripts/workflow checks to prevent recurrence.
+
 ## Related Docs
 - `openclaw-branch-promotion.md`
 - `openclaw-runtime-hardening.md`

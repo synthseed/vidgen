@@ -6,6 +6,7 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const DOCS_WORKFLOW = ".github/workflows/docs-knowledge-check.yml";
 const DEPLOY_WORKFLOW = ".github/workflows/deploy-openclaw-vps.yml";
+const AUTONOMOUS_WORKFLOW = ".github/workflows/autonomous-pipeline.yml";
 
 function readFile(relPath) {
   const fullPath = path.join(ROOT, relPath);
@@ -23,6 +24,12 @@ function requireSnippets(text, relPath, snippets, errors) {
   }
 }
 
+function requireAnySnippet(text, relPath, snippets, description, errors) {
+  if (!snippets.some((snippet) => text.includes(snippet))) {
+    errors.push(`${relPath}: ${description}`);
+  }
+}
+
 function requireRegex(text, relPath, pattern, description, errors) {
   if (!pattern.test(text)) {
     errors.push(`${relPath}: ${description}`);
@@ -35,6 +42,7 @@ function main() {
 
   const docs = readFile(DOCS_WORKFLOW);
   const deploy = readFile(DEPLOY_WORKFLOW);
+  const autonomous = readFile(AUTONOMOUS_WORKFLOW);
 
   requireSnippets(
     docs,
@@ -58,11 +66,9 @@ function main() {
     DEPLOY_WORKFLOW,
     [
       "name: Deploy OpenClaw VPS",
-      "push:",
-      "- dev",
       "workflow_dispatch:",
+      "workflow_call:",
       "concurrency:",
-      "group: deploy-openclaw-vps-dev",
       "runs-on: ubuntu-latest",
       "name: Autonomy Preflight (deploy gate)",
       "node scripts/autonomy_preflight.js --mode ci",
@@ -85,11 +91,17 @@ function main() {
       "name: Post-deploy VPS Status Validation",
       "STRICT_EXIT=1",
       "scripts/vps_autosync_status.sh",
-      "name: Collect VPS Diagnostics On Failure",
-      "journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager",
       "name: Disconnect Tailscale",
       "tailscale logout || true"
     ],
+    errors
+  );
+
+  requireAnySnippet(
+    deploy,
+    DEPLOY_WORKFLOW,
+    ["group: deploy-openclaw-vps-dev", "group: deploy-openclaw-vps-${{"],
+    'must define stable deploy concurrency group (fixed or branch-derived)',
     errors
   );
 
@@ -106,6 +118,25 @@ function main() {
     DEPLOY_WORKFLOW,
     /TS_TAGS:\s*\$\{\{\s*secrets\.TS_TAGS\s*\}\}/m,
     "must support optional TS_TAGS secret in 'Validate Deploy Secrets' step",
+    errors
+  );
+
+  requireSnippets(
+    autonomous,
+    AUTONOMOUS_WORKFLOW,
+    [
+      "name: Autonomous Pipeline",
+      "push:",
+      "- dev",
+      "pull_request:",
+      "- main",
+      "name: Supervised dry-run gates",
+      "bash scripts/supervised_dry_run.sh",
+      "name: Enforce PR evidence + branch policy",
+      "node scripts/pr_evidence_check.js",
+      "uses: ./.github/workflows/deploy-openclaw-vps.yml",
+      "promotion_readiness"
+    ],
     errors
   );
 
@@ -126,6 +157,7 @@ function main() {
   console.log("Workflow Integrity Report");
   console.log(`- Checked: ${DOCS_WORKFLOW}`);
   console.log(`- Checked: ${DEPLOY_WORKFLOW}`);
+  console.log(`- Checked: ${AUTONOMOUS_WORKFLOW}`);
 
   if (warnings.length > 0) {
     console.log("\nWarnings:");

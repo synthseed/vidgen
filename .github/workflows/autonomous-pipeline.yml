@@ -71,3 +71,28 @@ jobs:
           echo "Preflight: passed"
           echo "Policy/evidence: passed"
           echo "Next: human approval + merge policy"
+
+  failure_feedback:
+    if: failure()
+    needs: [preflight, pr_policy_and_evidence, deploy_dev_candidate, promotion_readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Re-run workflow integrity for actionable diagnostics
+        run: node scripts/workflow_integrity_check.js || true
+
+      - name: Failure response playbook
+        run: |
+          echo "Autonomous pipeline failed."
+          echo "Immediate response:" 
+          echo "1) Inspect failed job logs and first failing command"
+          echo "2) Apply targeted fix on dev"
+          echo "3) Re-run bash scripts/supervised_dry_run.sh locally"
+          echo "4) Record root cause + prevention in docs/ops/autonomy-smoke-log.md"
