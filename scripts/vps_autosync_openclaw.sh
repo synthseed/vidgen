@@ -32,6 +32,62 @@ TELEGRAM_ALERT_PREFIX="${TELEGRAM_ALERT_PREFIX:-[vidgen-autosync]}"
 TELEGRAM_ALERT_MIN_INTERVAL_SEC="${TELEGRAM_ALERT_MIN_INTERVAL_SEC:-900}"
 TELEGRAM_ALERT_STATE_FILE="${TELEGRAM_ALERT_STATE_FILE:-/tmp/vidgen-openclaw-telegram-alert.state}"
 
+pick_writable_dir() {
+  local candidate
+  for candidate in "$@"; do
+    [[ -n "$candidate" ]] || continue
+    if mkdir -p "$candidate" >/dev/null 2>&1 && [[ -d "$candidate" && -w "$candidate" ]]; then
+      printf "%s\n" "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_writable_file_path() {
+  local requested="$1"
+  local fallback_dir="$2"
+  local fallback_name="$3"
+  local requested_dir
+  requested_dir="$(dirname "$requested")"
+  if mkdir -p "$requested_dir" >/dev/null 2>&1 && [[ -w "$requested_dir" ]]; then
+    printf "%s\n" "$requested"
+    return 0
+  fi
+  mkdir -p "$fallback_dir" >/dev/null 2>&1 || return 1
+  printf "%s/%s\n" "$fallback_dir" "$fallback_name"
+}
+
+resolve_writable_dir_path() {
+  local requested="$1"
+  local fallback_dir="$2"
+  if mkdir -p "$requested" >/dev/null 2>&1 && [[ -w "$requested" ]]; then
+    printf "%s\n" "$requested"
+    return 0
+  fi
+  mkdir -p "$fallback_dir" >/dev/null 2>&1 || return 1
+  printf "%s\n" "$fallback_dir"
+}
+
+initialize_runtime_paths() {
+  local fallback_root
+  fallback_root="$(pick_writable_dir "${TMPDIR:-}" "/tmp" "/var/tmp" "${HOME:-}/.cache/vidgen-autosync" "${REPO_DIR}/.tmp")" \
+    || fail "unable to find a writable temporary directory for autosync"
+
+  LOCK_FILE="$(resolve_writable_file_path "$LOCK_FILE" "$fallback_root" "vidgen-openclaw-autosync.lock")" \
+    || fail "unable to resolve writable lock file path"
+  STATE_FILE="$(resolve_writable_file_path "$STATE_FILE" "$fallback_root" "vidgen-openclaw-autosync.state")" \
+    || fail "unable to resolve writable state file path"
+  WHATSAPP_ALERT_STATE_FILE="$(resolve_writable_file_path "$WHATSAPP_ALERT_STATE_FILE" "$fallback_root" "vidgen-openclaw-alert.state")" \
+    || fail "unable to resolve writable WhatsApp alert state path"
+  TELEGRAM_ALERT_STATE_FILE="$(resolve_writable_file_path "$TELEGRAM_ALERT_STATE_FILE" "$fallback_root" "vidgen-openclaw-telegram-alert.state")" \
+    || fail "unable to resolve writable Telegram alert state path"
+  WORKTREE_BASE="$(resolve_writable_dir_path "$WORKTREE_BASE" "$fallback_root/vidgen-autosync-worktrees")" \
+    || fail "unable to resolve writable worktree base path"
+
+  log "autosync temp paths lock=${LOCK_FILE} state=${STATE_FILE} worktrees=${WORKTREE_BASE}"
+}
+
 TARGET_COMMIT=""
 DEPLOYED_COMMIT=""
 
@@ -299,6 +355,10 @@ ensure_git_safe_directory() {
 }
 
 acquire_lock() {
+  local lock_dir
+  lock_dir="$(dirname "$LOCK_FILE")"
+  mkdir -p "$lock_dir" >/dev/null 2>&1 || fail "cannot create lock directory: $lock_dir"
+
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$LOCK_FILE"
     if ! flock -n 9; then
@@ -498,6 +558,7 @@ main() {
   require_cmd git
   require_cmd node
   require_cmd docker
+  initialize_runtime_paths
   acquire_lock
   ensure_git_safe_directory
 
