@@ -58,7 +58,7 @@ Required repo secrets:
    - `TAILSCALE_AUTHKEY` (recommended fallback for Tailnet Lock environments).
 2. `VPS_HOST` (tailnet IP or MagicDNS host for VPS).
 3. `VPS_USER` (Tailscale SSH target user).
-4. Workflow uses `tag:ci` for CI nodes.
+4. Optional `TS_TAGS` (comma-separated; default `tag:ci`). For OAuth mode, this must match the OAuth client tag set exactly.
 
 Recommended Tailscale ACL posture:
 1. Allow only `tag:ci` to reach the VPS over `tcp:22`.

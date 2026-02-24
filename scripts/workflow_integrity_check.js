@@ -71,6 +71,7 @@ function main() {
       "name: Enforce Deploy Secrets",
       "steps.deploy_secrets.outputs.enabled != 'true'",
       "name: Validate Tailscale Secret Format",
+      "name: Deploy Auth Summary",
       "name: Connect Tailscale (OAuth)",
       "name: Connect Tailscale (Authkey)",
       "name: Connect Tailscale (Fallback Manual Up)",
@@ -97,6 +98,14 @@ function main() {
     DEPLOY_WORKFLOW,
     /env:\s*\n\s*VPS_HOST:\s*\$\{\{\s*secrets\.VPS_HOST\s*\}\}\s*\n\s*VPS_USER:\s*\$\{\{\s*secrets\.VPS_USER\s*\}\}\s*\n\s*TS_OAUTH_CLIENT_ID:\s*\$\{\{\s*secrets\.TS_OAUTH_CLIENT_ID\s*\}\}\s*\n\s*TS_OAUTH_SECRET:\s*\$\{\{\s*secrets\.TS_OAUTH_SECRET\s*\}\}\s*\n\s*TAILSCALE_AUTHKEY:\s*\$\{\{\s*secrets\.TAILSCALE_AUTHKEY\s*\}\}/m,
     "must validate VPS + Tailscale secrets via env in 'Validate Deploy Secrets' step (including TAILSCALE_AUTHKEY fallback)",
+    errors
+  );
+
+  requireRegex(
+    deploy,
+    DEPLOY_WORKFLOW,
+    /TS_TAGS:\s*\$\{\{\s*secrets\.TS_TAGS\s*\}\}/m,
+    "must support optional TS_TAGS secret in 'Validate Deploy Secrets' step",
     errors
   );
 
