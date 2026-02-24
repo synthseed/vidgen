@@ -41,12 +41,11 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
           TS_TAGS: ${{ secrets.TS_TAGS }}
         run: |
-          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$VPS_SSH_KEY" ] && [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
+          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
             echo "Deploy secrets detected."
           else
@@ -62,34 +61,8 @@ jobs:
       - name: Enforce Deploy Secrets
         if: steps.deploy_secrets.outputs.enabled != 'true'
         run: |
-          echo "::error::Missing required secrets (VPS_HOST, VPS_USER, VPS_SSH_KEY, TS_OAUTH_CLIENT_ID, TS_OAUTH_SECRET)."
+          echo "::error::Missing required secrets (VPS_HOST, VPS_USER, TS_OAUTH_CLIENT_ID, TS_OAUTH_SECRET)."
           exit 1
-
-      - name: Normalize VPS Port
-        id: vps_port
-        env:
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-        run: |
-          if [ -n "${VPS_PORT}" ]; then
-            echo "value=${VPS_PORT}" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=22" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Prepare SSH Key
-        id: ssh_key
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-        run: |
-          set -euo pipefail
-          KEY_PATH="$RUNNER_TEMP/vps_deploy_ssh_key"
-          printf '%s' "$VPS_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$KEY_PATH"
-          if ! grep -Eq 'BEGIN (OPENSSH|RSA|EC|DSA|ED25519) PRIVATE KEY' "$KEY_PATH"; then
-            echo "::error::VPS_SSH_KEY is not a valid private key payload."
-            exit 1
-          fi
-          chmod 600 "$KEY_PATH"
-          echo "path=$KEY_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Connect Tailscale
         uses: tailscale/github-action@v4
@@ -103,68 +76,45 @@ jobs:
           tailscale status
           tailscale ip -4 || true
 
-      - name: Preflight SSH Reachability
+      - name: Preflight Tailnet Reachability
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ steps.vps_port.outputs.value }}
         run: |
           set -euo pipefail
-          if timeout 5 bash -c "</dev/tcp/${VPS_HOST}/${VPS_PORT}"; then
-            echo "SSH reachability OK: ${VPS_HOST}:${VPS_PORT}"
+          if tailscale ping --timeout=10s "$VPS_HOST"; then
+            echo "Tailnet reachability OK: ${VPS_HOST}"
           else
-            echo "::error::Cannot reach ${VPS_HOST}:${VPS_PORT} over tailnet."
+            echo "::error::Cannot reach ${VPS_HOST} over tailnet."
             exit 1
           fi
 
-      - name: Deploy to VPS over SSH
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 40m
-          script: |
-            set -e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export PROJECT_DIR=/docker/openclaw-jnqf
-            export BRANCH=dev
-            export OPENCLAW_SERVICE=openclaw
-            export OPENCLAW_HOME=/data/.openclaw
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh
+      - name: Deploy via Tailscale SSH
+        timeout-minutes: 45
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export PROJECT_DIR=/docker/openclaw-jnqf; export BRANCH=dev; export OPENCLAW_SERVICE=openclaw; export OPENCLAW_HOME=/data/.openclaw; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh"
 
       - name: Post-deploy VPS Status Validation
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 20m
-          script: |
-            set -e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export BRANCH=dev
-            export STRICT_EXIT=1
-            export LOG_LINES=120
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh
+        timeout-minutes: 20
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export STRICT_EXIT=1; export LOG_LINES=120; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh"
 
       - name: Collect VPS Diagnostics On Failure
         if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 20m
-          script: |
-            set +e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export BRANCH=dev
-            export LOG_LINES=200
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
-            journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true
+        timeout-minutes: 20
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set +e
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export LOG_LINES=200; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true; journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true" || true
 
       - name: Disconnect Tailscale
         if: always()

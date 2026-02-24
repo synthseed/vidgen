@@ -55,8 +55,8 @@ Deploy runs on a GitHub-hosted runner that joins your tailnet for deployment.
 Required repo secrets:
 1. `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` (Tailscale OAuth client with device write scope).
 2. `VPS_HOST` (tailnet IP or MagicDNS host for VPS).
-3. `VPS_USER`, `VPS_SSH_KEY` (dedicated deploy key recommended).
-4. Optional `VPS_PORT` (defaults to `22`), optional `TS_TAGS` (defaults to `tag:ci`).
+3. `VPS_USER` (Tailscale SSH target user).
+4. Optional `TS_TAGS` (defaults to `tag:ci`).
 
 Recommended Tailscale ACL posture:
 1. Allow only `tag:ci` to reach the VPS over `tcp:22`.
