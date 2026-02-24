@@ -17,6 +17,7 @@ Each role folder contains:
 - `AGENTS.md` (task contract)
 - `SOUL.md` (values and operating posture)
 - `IDENTITY.md` (agent persona fields)
+- `MEMORY.md` (curated semantic/procedural/episodic memory contract)
 
 Copy these into the corresponding OpenClaw agent workspaces and keep them versioned.
 

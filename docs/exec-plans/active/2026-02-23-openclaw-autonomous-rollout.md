@@ -8,8 +8,8 @@ The repository now contains role identity templates and an OpenClaw multi-agent 
 Next step is safe operational rollout without overwriting local auth/security/channel/session config.
 
 ## Objective
-Deploy autonomous multi-agent execution for vidgen with stable role identity (`SOUL.md`, `IDENTITY.md`)
-and safe layered config ownership between repo and local private environment.
+Deploy autonomous multi-agent execution for vidgen with stable role identity (`SOUL.md`, `IDENTITY.md`,
+`MEMORY.md`) and safe layered config ownership between repo and local private environment.
 
 ## Constraints
 - Do not overwrite or replace live local OpenClaw private config unexpectedly.

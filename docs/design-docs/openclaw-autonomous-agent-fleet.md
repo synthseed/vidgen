@@ -53,7 +53,7 @@ with its own full prompt context and memory.
 - Mechanical checks (`check_knowledge_base`, `doc_gardener`, `security_preflight`) reduce drift.
 
 ## Current Gaps
-- No explicit per-agent workspace templates (`SOUL.md`, `IDENTITY.md`, role `AGENTS.md`).
+- Per-agent memory discipline (`MEMORY.md`) must be actively maintained to avoid context drift.
 - No OpenClaw agent routing/config file in-repo.
 - No role-level handoff schema contracts for autonomous execution.
 - No queue/session/binding policy captured for multi-agent runtime.

@@ -11,6 +11,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
   - `AGENTS.md`
   - `SOUL.md`
   - `IDENTITY.md`
+  - `MEMORY.md`
 
 ## Runtime Ownership Boundary
 1. Keep repo ownership limited to `openclaw/openclaw.json` and role identity templates.
@@ -28,7 +29,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 ## Do Agents Need Their Own AGENTS.md?
 - Not every possible agent must have one.
 - Every active role that is expected to make decisions or perform distinct work should have its own `AGENTS.md`.
-- In practice for this repo, each active role also keeps `SOUL.md` and `IDENTITY.md` to preserve stable behavior.
+- In practice for this repo, each active role also keeps `SOUL.md`, `IDENTITY.md`, and `MEMORY.md` to preserve stable behavior.
 
 ## Live Validation Commands
 Run in the live OpenClaw container/host:
@@ -77,7 +78,7 @@ The runner:
 1. Pulls latest `dev` commit.
 2. Runs unified autonomy preflight (`scripts/autonomy_preflight.js`) covering topology, workflow integrity, docs, security, and orchestrator dry-run.
 3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
-4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`) into runtime workspaces.
+4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
 6. Restores previous runtime config backup automatically if runtime verification fails.
 7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.

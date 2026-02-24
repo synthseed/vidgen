@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const REQUIRED_FILES = ["AGENTS.md", "SOUL.md", "IDENTITY.md"];
+const REQUIRED_FILES = ["AGENTS.md", "SOUL.md", "IDENTITY.md", "MEMORY.md"];
 
 function parseArgs(argv) {
   const args = {

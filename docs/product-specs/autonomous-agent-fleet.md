@@ -50,7 +50,7 @@ with deterministic handoffs, safety gates, and role-specific identity.
 5. Publish gate: policy/security checks must pass.
 
 ## Identity and Soul Requirements
-- Each role must have dedicated `SOUL.md`, `IDENTITY.md`, and `AGENTS.md`.
+- Each role must have dedicated `SOUL.md`, `IDENTITY.md`, `AGENTS.md`, and `MEMORY.md`.
 - Role-critical decisions must be executed on the role's main session, not generic worker prompts.
 - Role identity files must be versioned in-repo and reviewed with behavior changes.
 
