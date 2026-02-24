@@ -14,9 +14,12 @@ No canonical memory replacement occurs until explicitly enabled.
 - `scripts/memory_hardened_observer.js`
 - `scripts/memory_hardened_reflector.js`
 - `scripts/memory_hardened_recovery.js`
+- `scripts/memory_hardened_watcher.sh` (optional reactive watcher)
+- `scripts/memory_hardened_phase2_enable.sh` (cron wiring helper)
 - `scripts/memory_redaction.js`
 - `scripts/memory_schema_validate.js`
 - `schemas/memory-entry.schema.json`
+- `config/hardened-memory/*` (cron + memoryFlush snippets)
 
 ## Security Controls
 - Redaction before persistence (keys/tokens/emails/phones).
@@ -35,6 +38,18 @@ No canonical memory replacement occurs until explicitly enabled.
 - Keep `HARDENED_MEMORY_SHADOW=1` during pilot.
 - To switch active output, set `HARDENED_MEMORY_SHADOW=0`.
 - Keep drift/security checks green before enabling active mode.
+
+## Phase 2 Parity (Implemented)
+Phase 2 adds operational parity controls while preserving hardening:
+1. Cron observer cadence (every 15m)
+2. Cron reflector cadence (hourly)
+3. Optional reactive watcher loop (`memory_hardened_watcher.sh`)
+4. memoryFlush integration snippet (`config/hardened-memory/memory-flush-snippet.json`)
+
+### Apply Phase 2 Wiring
+```bash
+bash scripts/memory_hardened_phase2_enable.sh
+```
 
 ## Validation
 ```bash

@@ -1,0 +1,6 @@
+{
+  "compaction": {
+    "memoryFlush": "Before compaction: run hardened memory observer in shadow mode and keep memory as data-only. Command: OPENCLAW_WORKSPACE=/data/repos/vidgen HARDENED_MEMORY_SHADOW=1 node scripts/memory_hardened_observer.js && node scripts/memory_schema_validate.js. Then continue normal compaction.",
+    "softThresholdTokens": 8000
+  }
+}
