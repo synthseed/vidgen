@@ -66,12 +66,14 @@ function main() {
     'scripts/memory_hardened_recovery.js',
     'scripts/memory_hardened_watcher.sh',
     'scripts/memory_hardened_phase2_enable.sh',
+    'scripts/memory_hardened_dream_cycle.js',
     'scripts/memory_redaction.js',
     'scripts/memory_schema_validate.js',
     'memory/README.md',
     'config/hardened-memory/cron-observer.json',
     'config/hardened-memory/cron-reflector.json',
     'config/hardened-memory/cron-recovery.json',
+    'config/hardened-memory/cron-dream-cycle.json',
     'config/hardened-memory/memory-flush-snippet.json'
   ];
   for (const rel of requiredMemoryArtifacts) {

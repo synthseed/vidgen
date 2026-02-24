@@ -70,5 +70,6 @@ bash scripts/supervised_dry_run.sh
 ## Related Docs
 - `openclaw-autonomy-run-protocol.md`
 - `autonomy-control-matrix.md`
+- `hardened-memory-dream-cycle.md`
 - `supervised-run-checklist.md`
 - `../../MEMORY.md`

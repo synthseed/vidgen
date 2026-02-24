@@ -21,6 +21,7 @@ Map common autonomous delivery failure classes to detection checks, self-heal ac
 | Post-deploy validation mismatch | Status validation step failure | Align status step with same env/sudo fallback as deploy step | Validation fails after successful deploy repeatedly | `.github/workflows/deploy-openclaw-vps.yml` parity checks |
 | Branch policy/evidence gaps | `scripts/pr_evidence_check.js` on `dev -> main` PR | Fail PR check until required evidence present | Manual attempts to bypass evidence repeatedly | PR template + evidence workflow + checklist docs |
 | Hardened memory schema/redaction drift | `scripts/memory_schema_validate.js` + `scripts/context_drift_check.js` | Block promotion until schema + redaction path are restored | Repeated invalid entries or missing artifacts | `docs/ops/hardened-memory-module.md`, `schemas/memory-entry.schema.json` |
+| Dream-cycle consolidation risk | `scripts/memory_hardened_dream_cycle.js` metrics + post-run schema validation | Default to read-only dry run; require signoff before live mode | Any validation failure, false archive signal, or repeated drift alerts | `docs/ops/hardened-memory-dream-cycle.md`, `config/hardened-memory/cron-dream-cycle.json` |
 
 ## Operating Rules
 1. Every recurring failure must result in either:
