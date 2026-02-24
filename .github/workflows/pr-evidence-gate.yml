@@ -1,0 +1,21 @@
+name: PR Evidence Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  enforce-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enforce PR evidence requirements for dev -> main
+        run: node scripts/pr_evidence_check.js
