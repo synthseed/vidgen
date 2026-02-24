@@ -8,6 +8,8 @@
         "subagents": {
           "allowAgents": [
             "director",
+            "product_manager",
+            "release_manager",
             "reliability_guardian"
           ]
         }
@@ -22,6 +24,41 @@
             "continuity_reviewer",
             "render_operator",
             "publisher",
+            "reliability_guardian"
+          ]
+        }
+      },
+      {
+        "id": "product_manager",
+        "model": "openai-codex/gpt-5.3-codex",
+        "subagents": {
+          "allowAgents": [
+            "engineering_lead",
+            "qa_guardian"
+          ]
+        }
+      },
+      {
+        "id": "engineering_lead",
+        "model": "openai-codex/gpt-5.3-codex",
+        "subagents": {
+          "allowAgents": [
+            "implementation_engineer",
+            "qa_guardian"
+          ]
+        }
+      },
+      {
+        "id": "implementation_engineer"
+      },
+      {
+        "id": "qa_guardian"
+      },
+      {
+        "id": "release_manager",
+        "subagents": {
+          "allowAgents": [
+            "qa_guardian",
             "reliability_guardian"
           ]
         }

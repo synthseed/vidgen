@@ -29,17 +29,24 @@ sub-agent spawns. Route critical work through dedicated agent IDs/workspaces so 
 with its own full prompt context and memory.
 
 ## Recommended Agent Team
-1. `main`: default admin and request entrypoint; delegates to specialist roles.
-2. `director`: planner/router; owns state machine and acceptance gates.
-3. `trend_researcher`: API-driven trend intake and source validation.
-4. `script_writer`: script package generation (narration, scenes, on-screen text, metadata draft).
-5. `continuity_reviewer`: continuity and detail-gap analysis with structured fix list.
-6. `render_operator`: render provider adapter execution and artifact manifest.
-7. `publisher`: YouTube metadata + upload + publish-state transitions.
-8. `reliability_guardian`: observability, retries, incident handling, and policy checks.
+1. `main`: default admin and request entrypoint; delegates to lane leads.
+2. `product_manager`: roadmap/scope/acceptance owner for development work.
+3. `engineering_lead`: architecture-fit planning and implementation decomposition.
+4. `implementation_engineer`: code changes, tests, and docs updates.
+5. `qa_guardian`: verification gate and regression triage.
+6. `release_manager`: branch promotion gate owner (`dev->main`) and rollback readiness.
+7. `director`: video pipeline planner/router.
+8. `trend_researcher`: API-driven trend intake and source validation.
+9. `script_writer`: script package generation (narration, scenes, on-screen text, metadata draft).
+10. `continuity_reviewer`: continuity and detail-gap analysis with structured fix list.
+11. `render_operator`: render provider adapter execution and artifact manifest.
+12. `publisher`: YouTube metadata + upload + publish-state transitions.
+13. `reliability_guardian`: observability, retries, incident handling, and policy checks.
 
 ## Routing Model
-- Primary flow:
+- Product+engineering flow:
+  `main -> product_manager -> engineering_lead -> implementation_engineer -> qa_guardian -> release_manager`.
+- Video flow:
   `main -> director -> trend_researcher -> script_writer -> continuity_reviewer -> render_operator -> publisher`.
 - Oversight lane:
   `reliability_guardian` receives event stream and can halt/pause runs.

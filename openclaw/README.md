@@ -22,7 +22,8 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 
 ## Team Pattern (Current)
 - Global overseer: `main` (admin default, continuity + security + safe remediation).
-- Project lead (video generation): `director`.
+- Product+engineering lane: `product_manager` -> `engineering_lead` -> `implementation_engineer` -> `qa_guardian` -> `release_manager`.
+- Video lane lead: `director`.
 - Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
 - Cross-team safety lane: `reliability_guardian`.
 

@@ -6,6 +6,11 @@ Last Reviewed: 2026-02-23
 Role templates included:
 - `main`
 - `director`
+- `product_manager`
+- `engineering_lead`
+- `implementation_engineer`
+- `qa_guardian`
+- `release_manager`
 - `trend_researcher`
 - `script_writer`
 - `continuity_reviewer`
