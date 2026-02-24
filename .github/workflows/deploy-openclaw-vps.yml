@@ -307,12 +307,17 @@ jobs:
             bash "$SCRIPT_PATH"
           }
 
-          if [ -w "${REPO_DIR}/.git" ]; then
+          can_write_git=0
+          can_use_docker=0
+          [ -w "${REPO_DIR}/.git" ] && can_write_git=1
+          docker info >/dev/null 2>&1 && can_use_docker=1
+
+          if [ "$can_write_git" -eq 1 ] && [ "$can_use_docker" -eq 1 ]; then
             run_bootstrap_and_autosync
             exit 0
           fi
 
-          if command -v sudo >/dev/null 2>&1 && sudo -n test -w "${REPO_DIR}/.git"; then
+          if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
             sudo -n env \
               REPO_DIR="$REPO_DIR" \
               PROJECT_DIR="$PROJECT_DIR" \
@@ -329,9 +334,12 @@ jobs:
             exit 0
           fi
 
-          echo "ERROR: user cannot write ${REPO_DIR}/.git and passwordless sudo is unavailable."
+          echo "ERROR: deploy user lacks required access and passwordless sudo is unavailable."
+          echo "can_write_git=${can_write_git} can_use_docker=${can_use_docker}"
           id || true
+          groups || true
           ls -ld "${REPO_DIR}" "${REPO_DIR}/.git" || true
+          ls -l /var/run/docker.sock || true
           exit 1
           REMOTE
 
