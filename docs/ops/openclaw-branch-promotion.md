@@ -58,6 +58,14 @@ Rules:
 - Production deploy pulls from `main` only.
 - Auto-deploy to production must reject non-`main` revisions.
 
+## Two Supported Delivery Scenarios
+1. External development -> `dev` push:
+   - `autonomous-pipeline.yml` runs supervised preflight and deploys the `dev` candidate.
+2. OpenClaw autonomous development -> `dev` push:
+   - same pipeline and gates apply (no special bypass), then deploy to candidate runtime.
+
+Both scenarios converge on one gated promotion path: `dev -> main` PR with required evidence and human approval.
+
 ## Rollback
 - Revert `main` to last known-good SHA.
 - Re-run post-deploy verification (`status`, security audit, reliability checks).
