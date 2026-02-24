@@ -50,7 +50,13 @@ It always syncs all known paths so UI context remains consistent across mixed la
 
 ## Automated VPS Sync
 Primary mode is event-driven deploy from GitHub Actions on each push to `dev` (or manual workflow dispatch), with deploy-gate preflight checks in the deploy workflow.
-Configure repo secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (optional `VPS_PORT`).
+Deploy runs on a self-hosted Linux runner installed on the VPS (no SSH hop from hosted runners).
+
+Self-hosted runner prerequisites:
+1. Runner registered to this repository with labels: `self-hosted`, `linux`.
+2. Runner host has access to `/docker/openclaw-jnqf`.
+3. Runner host can execute `docker`, `systemctl`, `git`, and `node`.
+4. Runner service account has permission to run `docker compose` for OpenClaw.
 
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
@@ -85,7 +91,7 @@ The runner:
 7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.
 
 Deploy workflow post-checks:
-1. Event-driven deploy runs on push to `dev` (and optional manual dispatch), then executes autosync over SSH.
+1. Event-driven deploy runs on push to `dev` (and optional manual dispatch) on the self-hosted VPS runner.
 2. Post-deploy strict status validation runs `STRICT_EXIT=1 bash .../vps_autosync_status.sh`.
 3. On failure, workflow collects diagnostics and recent systemd logs.
 

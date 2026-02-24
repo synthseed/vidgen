@@ -62,21 +62,15 @@ function main() {
       "- dev",
       "workflow_dispatch:",
       "concurrency:",
-      "group: deploy-openclaw-vps-${{ github.sha }}",
+      "group: deploy-openclaw-vps-dev",
+      "runs-on:",
+      "- self-hosted",
+      "- linux",
       "name: Autonomy Preflight (deploy gate)",
       "node scripts/autonomy_preflight.js --mode ci",
-      "name: Validate VPS Secrets",
-      "id: vps_secrets",
-      "name: Enforce VPS Secrets",
-      "steps.vps_secrets.outputs.enabled != 'true'",
-      "name: Normalize VPS Port",
-      "id: vps_port",
-      "name: Prepare SSH Key",
-      "id: ssh_key",
-      "name: Preflight SSH Reachability",
-      "key_path: ${{ steps.ssh_key.outputs.path }}",
-      "port: ${{ steps.vps_port.outputs.value }}",
-      "uses: appleboy/ssh-action@v1.2.2",
+      "name: Validate Host Prerequisites",
+      "docker compose -f /docker/openclaw-jnqf/docker-compose.yml config >/dev/null",
+      "name: Deploy Autosync",
       "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh",
       "name: Post-deploy VPS Status Validation",
       "STRICT_EXIT=1",
@@ -87,13 +81,9 @@ function main() {
     errors
   );
 
-  requireRegex(
-    deploy,
-    DEPLOY_WORKFLOW,
-    /env:\s*\n\s*VPS_HOST:\s*\$\{\{\s*secrets\.VPS_HOST\s*\}\}\s*\n\s*VPS_USER:\s*\$\{\{\s*secrets\.VPS_USER\s*\}\}\s*\n\s*VPS_SSH_KEY:\s*\$\{\{\s*secrets\.VPS_SSH_KEY\s*\}\}/m,
-    "must validate VPS_HOST/VPS_USER/VPS_SSH_KEY secrets via env in 'Validate VPS Secrets' step",
-    errors
-  );
+  if (deploy.includes("appleboy/ssh-action@")) {
+    errors.push(`${DEPLOY_WORKFLOW}: SSH action is not allowed in self-hosted deploy mode`);
+  }
 
   const disallowedSecretsIf = deploy
     .split(/\r?\n/)

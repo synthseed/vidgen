@@ -7,14 +7,15 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-openclaw-vps-${{ github.sha }}
+  group: deploy-openclaw-vps-dev
   cancel-in-progress: true
 
 jobs:
   deploy-vps:
-    if: >-
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    if: github.ref_name == 'dev'
+    runs-on:
+      - self-hosted
+      - linux
     permissions:
       contents: read
     steps:
@@ -23,126 +24,55 @@ jobs:
           echo "event=${GITHUB_EVENT_NAME}"
           echo "ref=${GITHUB_REF}"
           echo "sha=${GITHUB_SHA}"
+          echo "runner=${RUNNER_NAME}"
+          echo "runner_os=${RUNNER_OS}"
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
       - name: Autonomy Preflight (deploy gate)
         run: node scripts/autonomy_preflight.js --mode ci
 
-      - name: Validate VPS Secrets
-        id: vps_secrets
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-        run: |
-          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$VPS_SSH_KEY" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "VPS deploy secrets detected."
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "VPS deploy secrets missing; skipping deploy step."
-          fi
-
-      - name: Enforce VPS Secrets
-        if: steps.vps_secrets.outputs.enabled != 'true'
-        run: |
-          echo "::error::Missing required deploy secrets (VPS_HOST, VPS_USER, VPS_SSH_KEY)."
-          exit 1
-
-      - name: Normalize VPS Port
-        id: vps_port
-        env:
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-        run: |
-          if [ -n "${VPS_PORT}" ]; then
-            echo "value=${VPS_PORT}" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=22" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Prepare SSH Key
-        id: ssh_key
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      - name: Validate Host Prerequisites
         run: |
           set -euo pipefail
-          KEY_PATH="$RUNNER_TEMP/vps_deploy_ssh_key"
-          printf '%s' "$VPS_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$KEY_PATH"
-          if ! grep -Eq 'BEGIN (OPENSSH|RSA|EC|DSA|ED25519) PRIVATE KEY' "$KEY_PATH"; then
-            echo "::error::VPS_SSH_KEY is not a valid private key payload."
-            exit 1
-          fi
-          chmod 600 "$KEY_PATH"
-          echo "path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+          command -v bash
+          command -v git
+          command -v node
+          command -v docker
+          command -v systemctl
+          test -d /docker/openclaw-jnqf
+          test -d /docker/openclaw-jnqf/data/repos/vidgen
+          test -f /docker/openclaw-jnqf/docker-compose.yml
+          docker compose -f /docker/openclaw-jnqf/docker-compose.yml config >/dev/null
 
-      - name: Preflight SSH Reachability
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ steps.vps_port.outputs.value }}
+      - name: Deploy Autosync
         run: |
           set -euo pipefail
-          if timeout 5 bash -c "</dev/tcp/${VPS_HOST}/${VPS_PORT}"; then
-            echo "SSH reachability OK: ${VPS_HOST}:${VPS_PORT}"
-          else
-            echo "::error::Cannot reach ${VPS_HOST}:${VPS_PORT}. Check firewall, VPS SSH service, or port."
-            exit 1
-          fi
-
-      - name: Deploy to VPS over SSH
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 40m
-          script: |
-            set -e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export PROJECT_DIR=/docker/openclaw-jnqf
-            export BRANCH=dev
-            export OPENCLAW_SERVICE=openclaw
-            export OPENCLAW_HOME=/data/.openclaw
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export PROJECT_DIR=/docker/openclaw-jnqf
+          export BRANCH=dev
+          export OPENCLAW_SERVICE=openclaw
+          export OPENCLAW_HOME=/data/.openclaw
+          bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh
 
       - name: Post-deploy VPS Status Validation
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 20m
-          script: |
-            set -e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export BRANCH=dev
-            export STRICT_EXIT=1
-            export LOG_LINES=120
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh
+        run: |
+          set -euo pipefail
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export BRANCH=dev
+          export STRICT_EXIT=1
+          export LOG_LINES=120
+          bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh
 
       - name: Collect VPS Diagnostics On Failure
-        if: failure() && steps.vps_secrets.outputs.enabled == 'true'
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ steps.ssh_key.outputs.path }}
-          port: ${{ steps.vps_port.outputs.value }}
-          command_timeout: 20m
-          script: |
-            set +e
-            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
-            export BRANCH=dev
-            export LOG_LINES=200
-            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
-            journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true
+        if: failure()
+        run: |
+          set +e
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export BRANCH=dev
+          export LOG_LINES=200
+          bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
+          journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true
