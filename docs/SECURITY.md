@@ -39,6 +39,13 @@ Last Reviewed: 2026-02-23
 - Do not commit tokens, secrets, or captured auth responses.
 - Do not print raw secrets in logs or errors.
 - Rotate compromised or stale credentials immediately.
+- Avoid sharing full `docker compose config` output because it can include plaintext secrets.
+
+## Gateway Control UI Hardening
+- Keep `gateway.controlUi.allowInsecureAuth=false` unless in a short-lived break-glass event.
+- Keep `gateway.controlUi.dangerouslyDisableDeviceAuth=false` in normal operation.
+- When `gateway.bind` is non-loopback (LAN/tailnet/custom), configure `gateway.auth.rateLimit`.
+- Treat repeated `pairing required` disconnects as an auth-state issue; recover by approving/pairing the exact pending device request.
 
 ## Access Scope
 - Use minimum OAuth scopes required for YouTube upload/check operations.

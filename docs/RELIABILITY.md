@@ -19,6 +19,8 @@ Last Reviewed: 2026-02-23
 - Post-deploy strict status validation (`STRICT_EXIT=1` on `vps_autosync_status.sh`) and automatic diagnostics on workflow failure.
 - Optional hourly fallback timer for disconnected webhook periods.
 - Optional Telegram/WhatsApp failure alerts with cooldown in VPS autosync runner.
+- OpenClaw gateway scheduler health alerts (`healthcheck:gateway-watch`, `healthcheck:security-audit`) for runtime drift/failure detection.
+- Pairing-loop recovery procedure documented for Control UI disconnect flapping (`pairing required`).
 
 ## Required Next Controls
 - Retry policy for resumable upload failures.

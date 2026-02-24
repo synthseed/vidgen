@@ -17,6 +17,7 @@ This directory is the repository knowledge system of record.
 - `exec-plans/`: active/completed plans and debt tracking.
 - `references/`: copied external constraints and links.
 - `generated/`: generated docs/artifacts.
+- `ops/`: operational runbooks for gateway/runtime hardening and continuity.
 
 ## Related Docs
 - `../AGENTS.md`
