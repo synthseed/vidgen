@@ -73,6 +73,7 @@ function main() {
       "name: Validate Tailscale Secret Format",
       "name: Connect Tailscale (OAuth)",
       "name: Connect Tailscale (Authkey)",
+      "name: Connect Tailscale (Fallback Manual Up)",
       "uses: tailscale/github-action@v4",
       "name: Fail With Tailscale Diagnostics",
       "name: Preflight Tailnet Reachability",

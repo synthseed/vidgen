@@ -114,6 +114,7 @@ jobs:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
+          statedir: /tmp/tailscale-state
           version: latest
 
       - name: Connect Tailscale (Authkey)
@@ -127,20 +128,46 @@ jobs:
           statedir: /tmp/tailscale-state
           version: latest
 
+      - name: Connect Tailscale (Fallback Manual Up)
+        id: connect_tailscale_fallback
+        if: >
+          (steps.deploy_secrets.outputs.ts_auth_mode == 'oauth' && steps.connect_tailscale_oauth.outcome != 'success') ||
+          (steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success')
+        env:
+          TS_AUTH_MODE: ${{ steps.deploy_secrets.outputs.ts_auth_mode }}
+          TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          set -euo pipefail
+          if [ "${TS_AUTH_MODE}" = "oauth" ]; then
+            AUTHKEY="${TS_OAUTH_SECRET}"
+          else
+            AUTHKEY="${TAILSCALE_AUTHKEY}"
+          fi
+          if [ -z "${AUTHKEY}" ]; then
+            echo "::error::No Tailscale credential available for manual fallback."
+            exit 1
+          fi
+          echo "Attempting manual tailscale up fallback..."
+          sudo tailscale up --auth-key "${AUTHKEY}" --advertise-tags=tag:ci --hostname "gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --accept-dns=false --accept-routes=false --ssh 2>&1 | tee /tmp/tailscale-up.log
+
       - name: Tailnet Status
         if: always()
         run: |
-          tailscale status
+          tailscale status || true
           tailscale ip -4 || true
 
       - name: Fail With Tailscale Diagnostics
         if: >
-          (steps.deploy_secrets.outputs.ts_auth_mode == 'oauth' && steps.connect_tailscale_oauth.outcome != 'success') ||
-          (steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success')
+          (
+            (steps.deploy_secrets.outputs.ts_auth_mode == 'oauth' && steps.connect_tailscale_oauth.outcome != 'success') ||
+            (steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success')
+          ) && steps.connect_tailscale_fallback.outcome != 'success'
         run: |
           set +e
           echo "::error::Tailscale bootstrap failed. Check credential scope/tag ownership and Tailnet Lock settings."
           echo "::error::OAuth mode needs auth_keys scope + allowed tags. Tailnet Lock requires authkey + statedir."
+          test -f /tmp/tailscale-up.log && echo "--- tailscale up stderr/stdout ---" && sed -n '1,200p' /tmp/tailscale-up.log || true
           tailscale status || true
           tailscale netcheck || true
           test -f ~/tailscaled.log && sed -n '1,200p' ~/tailscaled.log || true
