@@ -20,6 +20,7 @@ Map common autonomous delivery failure classes to detection checks, self-heal ac
 | Remote lock/state path permission issue | Deploy logs (lock/state permission denied) | Select writable temp root dynamically; export lock/state/worktree paths | No writable temp directory available | Deploy workflow + autosync runtime path resolver |
 | Post-deploy validation mismatch | Status validation step failure | Align status step with same env/sudo fallback as deploy step | Validation fails after successful deploy repeatedly | `.github/workflows/deploy-openclaw-vps.yml` parity checks |
 | Branch policy/evidence gaps | `scripts/pr_evidence_check.js` on `dev -> main` PR | Fail PR check until required evidence present | Manual attempts to bypass evidence repeatedly | PR template + evidence workflow + checklist docs |
+| Hardened memory schema/redaction drift | `scripts/memory_schema_validate.js` + `scripts/context_drift_check.js` | Block promotion until schema + redaction path are restored | Repeated invalid entries or missing artifacts | `docs/ops/hardened-memory-module.md`, `schemas/memory-entry.schema.json` |
 
 ## Operating Rules
 1. Every recurring failure must result in either:

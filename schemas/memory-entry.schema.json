@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vidgen.local/schemas/memory-entry.schema.json",
+  "title": "Hardened Memory Entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "timestamp", "source", "priority", "fact_type", "summary", "trusted"],
+  "properties": {
+    "id": { "type": "string", "minLength": 8 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "role"],
+      "properties": {
+        "session": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+        "evidence_ref": { "type": "string" }
+      }
+    },
+    "priority": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+    "fact_type": { "type": "string", "enum": ["decision", "preference", "risk", "todo", "workflow", "context"] },
+    "summary": { "type": "string", "minLength": 3, "maxLength": 600 },
+    "tags": { "type": "array", "items": { "type": "string" }, "maxItems": 12 },
+    "trusted": { "type": "boolean" },
+    "safety_flags": { "type": "array", "items": { "type": "string" }, "maxItems": 12 }
+  }
+}

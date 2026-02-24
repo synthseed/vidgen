@@ -1,10 +1,10 @@
 # MEMORY
-Owner: agent/product_manager
+Owner: agent/main
 Status: active
 Last Reviewed: 2026-02-24
 
 ## Purpose
-Maintain product-direction continuity memory for scope decisions, acceptance criteria quality, and roadmap tradeoffs.
+Maintain main-agent continuity memory for environment safety, delegation quality, and policy consistency.
 
 ## Memory Contract
 - Keep memory compact, curated, and decision-useful.
@@ -56,10 +56,10 @@ Maintain product-direction continuity memory for scope decisions, acceptance cri
 - Prune whenever reading this file takes more than ~2 minutes.
 
 ## Role-Specific Capture Checklist
-- Requirement decisions and acceptance criteria deltas.
-- Scope cuts/additions with rationale and impact.
-- User-facing quality findings that changed priorities.
-- Cross-team dependency constraints affecting roadmap sequencing.
+- Delegation routes that succeeded or failed and why.
+- Runtime drift signatures plus safe reversible remediation.
+- Security and policy rulings with rationale.
+- Cross-team dependency issues that need escalation.
 
 ## Hardened Memory Integration
 - Use `memory/hardened/observations.shadow.jsonl` as supplemental captured context (untrusted by default).

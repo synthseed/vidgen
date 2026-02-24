@@ -21,7 +21,8 @@ function main() {
     'docs/ops/openclaw-runtime-hardening.md',
     'docs/ops/openclaw-branch-promotion.md',
     'docs/ops/openclaw-autonomy-run-protocol.md',
-    'docs/ops/supervised-run-checklist.md'
+    'docs/ops/supervised-run-checklist.md',
+    'docs/ops/hardened-memory-module.md'
   ];
 
   for (const doc of opsDocs) {
@@ -56,6 +57,19 @@ function main() {
         if (!t.includes(h)) errors.push(`${mem}: missing heading ${h}`);
       }
     }
+  }
+
+  const requiredMemoryArtifacts = [
+    'schemas/memory-entry.schema.json',
+    'scripts/memory_hardened_observer.js',
+    'scripts/memory_hardened_reflector.js',
+    'scripts/memory_hardened_recovery.js',
+    'scripts/memory_redaction.js',
+    'scripts/memory_schema_validate.js',
+    'memory/README.md'
+  ];
+  for (const rel of requiredMemoryArtifacts) {
+    if (!exists(rel)) errors.push(`missing hardened memory artifact: ${rel}`);
   }
 
   // drift flags for workflow architecture
