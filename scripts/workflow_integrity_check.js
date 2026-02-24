@@ -70,8 +70,11 @@ function main() {
       "id: deploy_secrets",
       "name: Enforce Deploy Secrets",
       "steps.deploy_secrets.outputs.enabled != 'true'",
-      "name: Connect Tailscale",
+      "name: Validate Tailscale Secret Format",
+      "name: Connect Tailscale (OAuth)",
+      "name: Connect Tailscale (Authkey)",
       "uses: tailscale/github-action@v4",
+      "name: Fail With Tailscale Diagnostics",
       "name: Preflight Tailnet Reachability",
       "tailscale ping --timeout=10s",
       "name: Deploy via Tailscale SSH",
@@ -91,8 +94,8 @@ function main() {
   requireRegex(
     deploy,
     DEPLOY_WORKFLOW,
-    /env:\s*\n\s*VPS_HOST:\s*\$\{\{\s*secrets\.VPS_HOST\s*\}\}\s*\n\s*VPS_USER:\s*\$\{\{\s*secrets\.VPS_USER\s*\}\}\s*\n\s*TS_OAUTH_CLIENT_ID:\s*\$\{\{\s*secrets\.TS_OAUTH_CLIENT_ID\s*\}\}\s*\n\s*TS_OAUTH_SECRET:\s*\$\{\{\s*secrets\.TS_OAUTH_SECRET\s*\}\}/m,
-    "must validate VPS + Tailscale secrets via env in 'Validate Deploy Secrets' step",
+    /env:\s*\n\s*VPS_HOST:\s*\$\{\{\s*secrets\.VPS_HOST\s*\}\}\s*\n\s*VPS_USER:\s*\$\{\{\s*secrets\.VPS_USER\s*\}\}\s*\n\s*TS_OAUTH_CLIENT_ID:\s*\$\{\{\s*secrets\.TS_OAUTH_CLIENT_ID\s*\}\}\s*\n\s*TS_OAUTH_SECRET:\s*\$\{\{\s*secrets\.TS_OAUTH_SECRET\s*\}\}\s*\n\s*TAILSCALE_AUTHKEY:\s*\$\{\{\s*secrets\.TAILSCALE_AUTHKEY\s*\}\}/m,
+    "must validate VPS + Tailscale secrets via env in 'Validate Deploy Secrets' step (including TAILSCALE_AUTHKEY fallback)",
     errors
   );
 

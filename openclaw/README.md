@@ -53,10 +53,12 @@ Primary mode is event-driven deploy from GitHub Actions on each push to `dev` (o
 Deploy runs on a GitHub-hosted runner that joins your tailnet for deployment.
 
 Required repo secrets:
-1. `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` (Tailscale OAuth client with device write scope).
+1. Either:
+   - `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` (Tailscale OAuth client; include `auth_keys` scope and allow `tag:ci`), or
+   - `TAILSCALE_AUTHKEY` (recommended fallback for Tailnet Lock environments).
 2. `VPS_HOST` (tailnet IP or MagicDNS host for VPS).
 3. `VPS_USER` (Tailscale SSH target user).
-4. Optional `TS_TAGS` (defaults to `tag:ci`).
+4. Workflow uses `tag:ci` for CI nodes.
 
 Recommended Tailscale ACL posture:
 1. Allow only `tag:ci` to reach the VPS over `tcp:22`.

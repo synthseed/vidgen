@@ -43,38 +43,108 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
-          TS_TAGS: ${{ secrets.TS_TAGS }}
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
         run: |
-          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=none" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets missing (VPS_HOST and/or VPS_USER)."
+            exit 0
+          fi
+
+          if [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "Deploy secrets detected."
+            echo "ts_auth_mode=oauth" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets detected (OAuth mode)."
+          elif [ -n "$TAILSCALE_AUTHKEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=authkey" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets detected (authkey mode)."
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Deploy secrets missing."
-          fi
-          if [ -n "$TS_TAGS" ]; then
-            echo "ts_tags=$TS_TAGS" >> "$GITHUB_OUTPUT"
-          else
-            echo "ts_tags=tag:ci" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=none" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets missing (need TS_OAUTH_CLIENT_ID+TS_OAUTH_SECRET or TAILSCALE_AUTHKEY)."
           fi
 
       - name: Enforce Deploy Secrets
         if: steps.deploy_secrets.outputs.enabled != 'true'
         run: |
-          echo "::error::Missing required secrets (VPS_HOST, VPS_USER, TS_OAUTH_CLIENT_ID, TS_OAUTH_SECRET)."
+          echo "::error::Missing required secrets (VPS_HOST, VPS_USER, and either TS_OAUTH_CLIENT_ID+TS_OAUTH_SECRET or TAILSCALE_AUTHKEY)."
           exit 1
 
-      - name: Connect Tailscale
+      - name: Validate Tailscale Secret Format
+        env:
+          TS_AUTH_MODE: ${{ steps.deploy_secrets.outputs.ts_auth_mode }}
+          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          set -euo pipefail
+          if [ "${TS_AUTH_MODE}" = "oauth" ]; then
+            case "${TS_OAUTH_CLIENT_ID}" in
+              tskey-client-*) ;;
+              *)
+                echo "::error::TS_OAUTH_CLIENT_ID must start with tskey-client-"
+                exit 1
+                ;;
+            esac
+            case "${TS_OAUTH_SECRET}" in
+              tskey-client-secret-*) ;;
+              *)
+                echo "::error::TS_OAUTH_SECRET must start with tskey-client-secret-"
+                exit 1
+                ;;
+            esac
+          elif [ "${TS_AUTH_MODE}" = "authkey" ]; then
+            case "${TAILSCALE_AUTHKEY}" in
+              tskey-auth-*) ;;
+              *)
+                echo "::error::TAILSCALE_AUTHKEY must start with tskey-auth-"
+                exit 1
+                ;;
+            esac
+          fi
+
+      - name: Connect Tailscale (OAuth)
+        id: connect_tailscale_oauth
+        if: steps.deploy_secrets.outputs.ts_auth_mode == 'oauth'
+        continue-on-error: true
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: ${{ steps.deploy_secrets.outputs.ts_tags }}
+          tags: tag:ci
+          version: latest
+
+      - name: Connect Tailscale (Authkey)
+        id: connect_tailscale_authkey
+        if: steps.deploy_secrets.outputs.ts_auth_mode == 'authkey'
+        continue-on-error: true
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: tag:ci
+          statedir: /tmp/tailscale-state
+          version: latest
 
       - name: Tailnet Status
+        if: always()
         run: |
           tailscale status
           tailscale ip -4 || true
+
+      - name: Fail With Tailscale Diagnostics
+        if: >
+          (steps.deploy_secrets.outputs.ts_auth_mode == 'oauth' && steps.connect_tailscale_oauth.outcome != 'success') ||
+          (steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success')
+        run: |
+          set +e
+          echo "::error::Tailscale bootstrap failed. Check credential scope/tag ownership and Tailnet Lock settings."
+          echo "::error::OAuth mode needs auth_keys scope + allowed tags. Tailnet Lock requires authkey + statedir."
+          tailscale status || true
+          tailscale netcheck || true
+          test -f ~/tailscaled.log && sed -n '1,200p' ~/tailscaled.log || true
+          exit 1
 
       - name: Preflight Tailnet Reachability
         env:
