@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hardened Memory Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #121826;
+      --panel-2: #1a2335;
+      --text: #e8eefc;
+      --muted: #9fb0d4;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --accent: #60a5fa;
+      --border: #27334d;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 8px; }
+    .muted { color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12,1fr); gap: 14px; margin-top: 18px; }
+    .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .kpi { font-size: 28px; font-weight: 700; margin-top: 8px; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .ok { background: rgba(34,197,94,.15); color: #86efac; border: 1px solid rgba(34,197,94,.4); }
+    .warn { background: rgba(245,158,11,.15); color: #fcd34d; border: 1px solid rgba(245,158,11,.4); }
+    .err { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.4); }
+    .accent { background: rgba(96,165,250,.15); color: #bfdbfe; border: 1px solid rgba(96,165,250,.4); }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .row { display:flex; justify-content:space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+    .controls { display:flex; gap:8px; margin-top:10px; }
+    input { width: 100%; background:#0f1524; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px; }
+    button { background:#1d4ed8; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+    @media (max-width:900px){ .span-4,.span-6,.span-8{grid-column:span 12;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Hardened Memory Dashboard</h1>
+    <div class="muted">Dark-mode operations dashboard for active memory mode</div>
+
+    <div class="card span-12" style="margin-top:14px;">
+      <label class="muted">Dashboard JSON path</label>
+      <div class="controls">
+        <input id="path" value="../memory/hardened/dashboard.json" />
+        <button onclick="loadDash()">Load</button>
+      </div>
+    </div>
+
+    <div class="grid" id="content" style="display:none;">
+      <div class="card span-4">
+        <div class="muted">Observations</div>
+        <div class="kpi" id="obsTotal">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="muted">Flagged Injection Signals</div>
+        <div class="kpi" id="flagged">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="muted">Dream Runs (7d)</div>
+        <div class="kpi" id="dreamRuns">-</div>
+      </div>
+
+      <div class="card span-6">
+        <h3>Priority Breakdown</h3>
+        <div id="priorityRows"></div>
+      </div>
+      <div class="card span-6">
+        <h3>Fact Type Breakdown</h3>
+        <div id="typeRows"></div>
+      </div>
+
+      <div class="card span-8">
+        <h3>Dream Cycle</h3>
+        <table>
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody id="dreamTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card span-4">
+        <h3>Recommendation</h3>
+        <div id="recommendation" class="pill accent">-</div>
+        <div class="muted" id="generatedAt" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const badge = (txt) => {
+      if (!txt) return ['-', 'accent'];
+      const t = txt.toLowerCase();
+      if (t.includes('eligible')) return [txt, 'ok'];
+      if (t.includes('remain')) return [txt, 'warn'];
+      return [txt, 'accent'];
+    };
+
+    function renderRows(target, obj = {}) {
+      const keys = Object.keys(obj);
+      el(target).innerHTML = keys.length
+        ? keys.map(k => `<div class="row"><span>${k}</span><strong>${obj[k]}</strong></div>`).join('')
+        : '<div class="muted">No data</div>';
+    }
+
+    function renderTable(data) {
+      const rows = [
+        ['Last 7 Runs', data.last7Runs],
+        ['Dry Run Count', data.dryRunCount],
+        ['Live Run Count', data.liveRunCount],
+        ['Latest Model', data.latest?.model || '-'],
+        ['Latest ReadOnly', String(data.latest?.readOnly ?? '-')],
+        ['Latest Source Count', data.latest?.sourceCount ?? '-'],
+        ['Latest Archive Candidates', data.latest?.archiveCandidateCount ?? '-'],
+      ];
+      el('dreamTable').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+    }
+
+    async function loadDash() {
+      const p = el('path').value.trim();
+      try {
+        const res = await fetch(p, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const d = await res.json();
+        el('content').style.display = 'grid';
+
+        el('obsTotal').textContent = d.observations?.total ?? 0;
+        el('flagged').textContent = d.observations?.flaggedCount ?? 0;
+        el('dreamRuns').textContent = d.dreamCycle?.last7Runs ?? 0;
+
+        renderRows('priorityRows', d.observations?.priorityBreakdown);
+        renderRows('typeRows', d.observations?.factTypeBreakdown);
+        renderTable(d.dreamCycle || {});
+
+        const [txt, cls] = badge(d.recommendation);
+        el('recommendation').textContent = txt;
+        el('recommendation').className = `pill ${cls}`;
+        el('generatedAt').textContent = `Generated: ${d.generatedAt || '-'}`;
+      } catch (e) {
+        alert(`Failed to load dashboard: ${e.message}\n\nTip: serve repo root via HTTP, e.g.\npython3 -m http.server 8080`);
+      }
+    }
+
+    loadDash();
+  </script>
+</body>
+</html>
