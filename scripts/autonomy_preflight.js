@@ -6,7 +6,8 @@ const path = require("path");
 function parseArgs(argv) {
   const args = {
     mode: "default",
-    docStrict: false
+    docStrict: false,
+    memoryStrict: false
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -18,6 +19,10 @@ function parseArgs(argv) {
     }
     if (token === "--doc-strict") {
       args.docStrict = true;
+      continue;
+    }
+    if (token === "--memory-strict") {
+      args.memoryStrict = true;
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -58,12 +63,15 @@ function runStep(step, cwd) {
 function buildSteps(options) {
   const docArgs = ["scripts/doc_gardener.js"];
   if (options.docStrict) docArgs.push("--strict");
+  const memoryArgs = ["scripts/memory_hygiene_check.js"];
+  if (options.memoryStrict || options.docStrict) memoryArgs.push("--strict");
 
   return [
     { name: "Topology", cmd: "node", args: ["scripts/openclaw_topology_check.js"] },
     { name: "Workflow Integrity", cmd: "node", args: ["scripts/workflow_integrity_check.js"] },
     { name: "Knowledge Base", cmd: "node", args: ["scripts/check_knowledge_base.js"] },
     { name: "Doc Gardener", cmd: "node", args: docArgs },
+    { name: "Memory Hygiene", cmd: "node", args: memoryArgs },
     { name: "Security Preflight", cmd: "node", args: ["scripts/security_preflight.js", "--strict"] },
     { name: "Pipeline Dry Run", cmd: "node", args: ["scripts/pipeline_orchestrator_dry_run.js"] }
   ];
@@ -77,6 +85,7 @@ function main() {
   console.log("Autonomy Preflight");
   console.log(`- mode: ${options.mode}`);
   console.log(`- doc_strict: ${options.docStrict ? "1" : "0"}`);
+  console.log(`- memory_strict: ${options.memoryStrict ? "1" : "0"}`);
   console.log(`- steps: ${steps.length}`);
 
   const summary = [];
@@ -107,4 +116,3 @@ try {
   console.error(error.message || error);
   process.exit(1);
 }
-

@@ -13,6 +13,7 @@ Last Reviewed: 2026-02-23
 - Dry-run mode to verify metadata without publishing.
 - OAuth token refresh before API calls.
 - Unified autonomy preflight (`scripts/autonomy_preflight.js`) used in CI and VPS candidate validation.
+- Memory hygiene checks (`scripts/memory_hygiene_check.js`) to prevent memory drift and bloat across agent templates.
 - CI checks on `dev/main` push plus workflow lint.
 - Event-driven VPS deploy after CI pass, with auto-sync runner for apply/verify/rollback.
 - Post-deploy strict status validation (`STRICT_EXIT=1` on `vps_autosync_status.sh`) and automatic diagnostics on workflow failure.

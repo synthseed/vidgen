@@ -76,7 +76,7 @@ Optional WhatsApp alerts are still supported, but they depend on OpenClaw gatewa
 
 The runner:
 1. Pulls latest `dev` commit.
-2. Runs unified autonomy preflight (`scripts/autonomy_preflight.js`) covering topology, workflow integrity, docs, security, and orchestrator dry-run.
+2. Runs unified autonomy preflight (`scripts/autonomy_preflight.js`) covering topology, workflow integrity, docs, memory hygiene, security, and orchestrator dry-run.
 3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
 4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
