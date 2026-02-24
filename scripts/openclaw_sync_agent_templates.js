@@ -78,13 +78,8 @@ function resolveTargetDirs(openclawHome, agentId) {
   const legacyWorkspace = path.join(openclawHome, `workspace-${agentId}`);
   const nestedWorkspace = path.join(openclawHome, "workspaces", "agents", agentId, "agent");
 
-  // Always sync primary and legacy workspace paths.
-  // Include nested workspace path only when it already exists.
-  const targets = [primary, legacyWorkspace];
-  if (fs.existsSync(nestedWorkspace)) {
-    targets.push(nestedWorkspace);
-  }
-  return unique(targets);
+  // Always sync all known runtime layouts to avoid UI/runtime path drift.
+  return unique([primary, legacyWorkspace, nestedWorkspace]);
 }
 
 function run() {

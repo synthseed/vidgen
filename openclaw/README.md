@@ -45,7 +45,8 @@ If specialist agents appear without workspace identity files in the UI, sync tem
 The sync script auto-detects both runtime layouts:
 - `/data/.openclaw/agents/<agentId>/agent`
 - `/data/.openclaw/workspace-<agentId>` (legacy/workspace-style)
-It always syncs both paths so UI context remains consistent across mixed layouts.
+- `/data/.openclaw/workspaces/agents/<agentId>/agent` (nested workspace layout)
+It always syncs all known paths so UI context remains consistent across mixed layouts.
 
 ## Automated VPS Sync
 Primary mode is event-driven deploy from GitHub Actions after checks pass on `dev`.
