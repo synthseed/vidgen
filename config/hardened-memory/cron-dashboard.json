@@ -1,0 +1,15 @@
+{
+  "name": "hardened-memory:dashboard",
+  "schedule": {
+    "kind": "cron",
+    "expr": "30 * * * *",
+    "tz": "America/Phoenix"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Run: OPENCLAW_WORKSPACE=/data/repos/vidgen node scripts/memory_hardened_dashboard.js. If recommendation says eligible to switch DREAM_READ_ONLY=0, alert with exact instruction; else reply NO_REPLY.",
+    "timeoutSeconds": 120
+  },
+  "delivery": { "mode": "announce", "channel": "last" }
+}

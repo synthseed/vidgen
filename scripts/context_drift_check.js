@@ -74,6 +74,7 @@ function main() {
     'config/hardened-memory/cron-reflector.json',
     'config/hardened-memory/cron-recovery.json',
     'config/hardened-memory/cron-dream-cycle.json',
+    'config/hardened-memory/cron-dashboard.json',
     'config/hardened-memory/memory-flush-snippet.json'
   ];
   for (const rel of requiredMemoryArtifacts) {

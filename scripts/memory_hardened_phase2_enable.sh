@@ -42,5 +42,11 @@ ensure_cron \
   "Run OPENCLAW_WORKSPACE=${ROOT} HARDENED_MEMORY_SHADOW=0 DREAM_MODEL=openai/gpt-5.2 DREAM_READ_ONLY=1 node scripts/memory_hardened_dream_cycle.js && node scripts/memory_schema_validate.js. Reply NO_REPLY if successful; alert on error." \
   "hardened-memory:dream"
 
+ensure_cron \
+  "hardened-memory:dashboard" \
+  "30 * * * *" \
+  "Run OPENCLAW_WORKSPACE=${ROOT} node scripts/memory_hardened_dashboard.js. If recommendation says eligible to switch DREAM_READ_ONLY=0, alert with exact instruction: set DREAM_READ_ONLY=0 for hardened-memory:dream-cycle after reliability_guardian and human approval. Otherwise reply NO_REPLY." \
+  "hardened-memory:dash"
+
 echo "Phase 2/3 cron wiring complete"
 openclaw cron list

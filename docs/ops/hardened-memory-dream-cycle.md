@@ -32,6 +32,7 @@ Dream Cycle runs use `openai/gpt-5.2`.
 2. reliability_guardian signoff.
 3. Human approval.
 4. Update runbook decision log.
+5. Confirm dashboard reminder fired (or manually verify `memory/hardened/dashboard.json`) before switching `DREAM_READ_ONLY=0`.
 
 ## Related Docs
 - `hardened-memory-module.md`
