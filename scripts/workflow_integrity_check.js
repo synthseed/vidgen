@@ -63,27 +63,42 @@ function main() {
       "workflow_dispatch:",
       "concurrency:",
       "group: deploy-openclaw-vps-dev",
-      "runs-on:",
-      "- self-hosted",
-      "- linux",
+      "runs-on: ubuntu-latest",
       "name: Autonomy Preflight (deploy gate)",
       "node scripts/autonomy_preflight.js --mode ci",
-      "name: Validate Host Prerequisites",
-      "docker compose -f /docker/openclaw-jnqf/docker-compose.yml config >/dev/null",
-      "name: Deploy Autosync",
+      "name: Validate Deploy Secrets",
+      "id: deploy_secrets",
+      "name: Enforce Deploy Secrets",
+      "steps.deploy_secrets.outputs.enabled != 'true'",
+      "name: Normalize VPS Port",
+      "id: vps_port",
+      "name: Prepare SSH Key",
+      "id: ssh_key",
+      "name: Connect Tailscale",
+      "uses: tailscale/github-action@v4",
+      "name: Preflight SSH Reachability",
+      "key_path: ${{ steps.ssh_key.outputs.path }}",
+      "port: ${{ steps.vps_port.outputs.value }}",
+      "uses: appleboy/ssh-action@v1.2.2",
       "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh",
       "name: Post-deploy VPS Status Validation",
       "STRICT_EXIT=1",
       "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh",
       "name: Collect VPS Diagnostics On Failure",
-      "journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager"
+      "journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager",
+      "name: Disconnect Tailscale",
+      "tailscale logout || true"
     ],
     errors
   );
 
-  if (deploy.includes("appleboy/ssh-action@")) {
-    errors.push(`${DEPLOY_WORKFLOW}: SSH action is not allowed in self-hosted deploy mode`);
-  }
+  requireRegex(
+    deploy,
+    DEPLOY_WORKFLOW,
+    /env:\s*\n\s*VPS_HOST:\s*\$\{\{\s*secrets\.VPS_HOST\s*\}\}\s*\n\s*VPS_USER:\s*\$\{\{\s*secrets\.VPS_USER\s*\}\}\s*\n\s*VPS_SSH_KEY:\s*\$\{\{\s*secrets\.VPS_SSH_KEY\s*\}\}\s*\n\s*TS_OAUTH_CLIENT_ID:\s*\$\{\{\s*secrets\.TS_OAUTH_CLIENT_ID\s*\}\}\s*\n\s*TS_OAUTH_SECRET:\s*\$\{\{\s*secrets\.TS_OAUTH_SECRET\s*\}\}/m,
+    "must validate VPS + Tailscale secrets via env in 'Validate Deploy Secrets' step",
+    errors
+  );
 
   const disallowedSecretsIf = deploy
     .split(/\r?\n/)

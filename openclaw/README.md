@@ -50,13 +50,18 @@ It always syncs all known paths so UI context remains consistent across mixed la
 
 ## Automated VPS Sync
 Primary mode is event-driven deploy from GitHub Actions on each push to `dev` (or manual workflow dispatch), with deploy-gate preflight checks in the deploy workflow.
-Deploy runs on a self-hosted Linux runner installed on the VPS (no SSH hop from hosted runners).
+Deploy runs on a GitHub-hosted runner that joins your tailnet for deployment.
 
-Self-hosted runner prerequisites:
-1. Runner registered to this repository with labels: `self-hosted`, `linux`.
-2. Runner host has access to `/docker/openclaw-jnqf`.
-3. Runner host can execute `docker`, `systemctl`, `git`, and `node`.
-4. Runner service account has permission to run `docker compose` for OpenClaw.
+Required repo secrets:
+1. `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` (Tailscale OAuth client with device write scope).
+2. `VPS_HOST` (tailnet IP or MagicDNS host for VPS).
+3. `VPS_USER`, `VPS_SSH_KEY` (dedicated deploy key recommended).
+4. Optional `VPS_PORT` (defaults to `22`), optional `TS_TAGS` (defaults to `tag:ci`).
+
+Recommended Tailscale ACL posture:
+1. Allow only `tag:ci` to reach the VPS over `tcp:22`.
+2. Deny broader lateral access from CI nodes.
+3. Rotate OAuth/SSH credentials periodically.
 
 Host-side runner used by both event-driven deploy and manual fallback:
 - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
@@ -91,7 +96,7 @@ The runner:
 7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.
 
 Deploy workflow post-checks:
-1. Event-driven deploy runs on push to `dev` (and optional manual dispatch) on the self-hosted VPS runner.
+1. Event-driven deploy runs on push to `dev` (and optional manual dispatch) from a hosted runner that joins your tailnet.
 2. Post-deploy strict status validation runs `STRICT_EXIT=1 bash .../vps_autosync_status.sh`.
 3. On failure, workflow collects diagnostics and recent systemd logs.
 
