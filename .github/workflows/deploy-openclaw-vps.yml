@@ -367,7 +367,45 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'STRICT_EXIT=1 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh'
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export BRANCH=dev
+          export STRICT_EXIT=1
+          export LOG_LINES=120
+
+          AUTOSYNC_TMP=''
+          for d in "${HOME:-}/.cache/vidgen-autosync" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do
+            if mkdir -p "$d" 2>/dev/null && [ -w "$d" ]; then
+              AUTOSYNC_TMP="$d"
+              break
+            fi
+          done
+          if [ -z "$AUTOSYNC_TMP" ]; then
+            echo "No writable autosync temp directory"
+            exit 1
+          fi
+          export STATE_FILE="$AUTOSYNC_TMP/vidgen-openclaw-autosync.state"
+
+          SCRIPT_PATH="/docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh"
+          if [ -w "${REPO_DIR}/.git" ]; then
+            bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          if command -v sudo >/dev/null 2>&1 && sudo -n test -w "${REPO_DIR}/.git"; then
+            sudo -n env \
+              REPO_DIR="$REPO_DIR" \
+              BRANCH="$BRANCH" \
+              STRICT_EXIT="$STRICT_EXIT" \
+              LOG_LINES="$LOG_LINES" \
+              STATE_FILE="$STATE_FILE" \
+              bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          bash "$SCRIPT_PATH"
+          REMOTE
 
       - name: Collect VPS Diagnostics On Failure
         if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
