@@ -1,0 +1,17 @@
+[Unit]
+Description=Vidgen OpenClaw Auto Sync
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/docker/openclaw-jnqf
+EnvironmentFile=-/etc/default/vidgen-openclaw-autosync
+Environment=REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+Environment=PROJECT_DIR=/docker/openclaw-jnqf
+Environment=BRANCH=dev
+Environment=OPENCLAW_SERVICE=openclaw
+Environment=OPENCLAW_HOME=/data/.openclaw
+ExecStart=/usr/bin/env bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh

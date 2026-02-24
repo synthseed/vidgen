@@ -1,0 +1,3 @@
+Placeholder reference file for uv package/runtime workflow notes.
+This repository currently uses plain Node scripts and no uv-managed runtime.
+

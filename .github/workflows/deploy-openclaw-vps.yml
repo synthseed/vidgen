@@ -1,0 +1,428 @@
+name: Deploy OpenClaw VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy"
+        required: false
+        default: "dev"
+  workflow_call:
+    inputs:
+      branch:
+        required: false
+        type: string
+        default: "dev"
+
+concurrency:
+  group: deploy-openclaw-vps-${{ inputs.branch || github.ref_name || 'dev' }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-vps:
+    if: (inputs.branch || github.ref_name) == 'dev'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Trigger Summary
+        run: |
+          echo "event=${GITHUB_EVENT_NAME}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          echo "branch=${{ inputs.branch || github.ref_name }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.branch || github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Autonomy Preflight (deploy gate)
+        run: node scripts/autonomy_preflight.js --mode ci
+
+      - name: Validate Deploy Secrets
+        id: deploy_secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+          TS_TAGS: ${{ secrets.TS_TAGS }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=none" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets missing (VPS_HOST and/or VPS_USER)."
+            exit 0
+          fi
+
+          if [ -n "$TAILSCALE_AUTHKEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=authkey" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets detected (authkey mode)."
+          elif [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_SECRET" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=oauth" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets detected (OAuth mode)."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "ts_auth_mode=none" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets missing (need TS_OAUTH_CLIENT_ID+TS_OAUTH_SECRET or TAILSCALE_AUTHKEY)."
+          fi
+
+          if [ -n "$TS_TAGS" ]; then
+            echo "ts_tags=$TS_TAGS" >> "$GITHUB_OUTPUT"
+            echo "Using configured TS_TAGS: $TS_TAGS"
+          else
+            echo "ts_tags=tag:ci" >> "$GITHUB_OUTPUT"
+            echo "Using default tag: tag:ci"
+          fi
+
+      - name: Enforce Deploy Secrets
+        if: steps.deploy_secrets.outputs.enabled != 'true'
+        run: |
+          echo "::error::Missing required secrets (VPS_HOST, VPS_USER, and either TS_OAUTH_CLIENT_ID+TS_OAUTH_SECRET or TAILSCALE_AUTHKEY)."
+          exit 1
+
+      - name: Validate Tailscale Secret Format
+        env:
+          TS_AUTH_MODE: ${{ steps.deploy_secrets.outputs.ts_auth_mode }}
+          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          set -euo pipefail
+          if [ "${TS_AUTH_MODE}" = "oauth" ]; then
+            case "${TS_OAUTH_CLIENT_ID}" in
+              tskey-client-*) ;;
+              *)
+                echo "::error::TS_OAUTH_CLIENT_ID must start with tskey-client-"
+                exit 1
+                ;;
+            esac
+            case "${TS_OAUTH_SECRET}" in
+              tskey-client-secret-*) ;;
+              *)
+                echo "::error::TS_OAUTH_SECRET must start with tskey-client-secret-"
+                exit 1
+                ;;
+            esac
+          elif [ "${TS_AUTH_MODE}" = "authkey" ]; then
+            case "${TAILSCALE_AUTHKEY}" in
+              tskey-auth-*) ;;
+              *)
+                echo "::error::TAILSCALE_AUTHKEY must start with tskey-auth-"
+                exit 1
+                ;;
+            esac
+          fi
+
+      - name: Deploy Auth Summary
+        run: |
+          echo "ts_auth_mode=${{ steps.deploy_secrets.outputs.ts_auth_mode }}"
+          echo "ts_tags=${{ steps.deploy_secrets.outputs.ts_tags }}"
+
+      - name: Connect Tailscale (OAuth)
+        id: connect_tailscale_oauth
+        if: steps.deploy_secrets.outputs.ts_auth_mode == 'oauth'
+        continue-on-error: true
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: ${{ steps.deploy_secrets.outputs.ts_tags }}
+          statedir: /tmp/tailscale-state
+          version: latest
+
+      - name: Connect Tailscale (Authkey)
+        id: connect_tailscale_authkey
+        if: steps.deploy_secrets.outputs.ts_auth_mode == 'authkey'
+        continue-on-error: true
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: ${{ steps.deploy_secrets.outputs.ts_tags }}
+          statedir: /tmp/tailscale-state
+          version: latest
+
+      - name: Connect Tailscale (Fallback Manual Up)
+        id: connect_tailscale_fallback
+        if: steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success'
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          set -euo pipefail
+          AUTHKEY="${TAILSCALE_AUTHKEY}"
+          TS_TAGS='${{ steps.deploy_secrets.outputs.ts_tags }}'
+          if [ -z "${AUTHKEY}" ]; then
+            echo "::error::No Tailscale credential available for manual fallback."
+            exit 1
+          fi
+          echo "Attempting manual tailscale up fallback..."
+          sudo tailscale up --auth-key "${AUTHKEY}" --advertise-tags="${TS_TAGS}" --hostname "gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --accept-dns=false --accept-routes=false --ssh 2>&1 | tee /tmp/tailscale-up.log
+
+      - name: Tailnet Status
+        if: always()
+        run: |
+          tailscale status || true
+          tailscale ip -4 || true
+
+      - name: Fail With Tailscale Diagnostics
+        if: >
+          (
+            (steps.deploy_secrets.outputs.ts_auth_mode == 'oauth' && steps.connect_tailscale_oauth.outcome != 'success') ||
+            (steps.deploy_secrets.outputs.ts_auth_mode == 'authkey' && steps.connect_tailscale_authkey.outcome != 'success')
+          ) && steps.connect_tailscale_fallback.outcome != 'success'
+        run: |
+          set +e
+          echo "::error::Tailscale bootstrap failed. Check credential scope/tag ownership and Tailnet Lock settings."
+          echo "::error::OAuth mode needs auth_keys scope + allowed tags. Tailnet Lock requires authkey + statedir."
+          test -f /tmp/tailscale-up.log && echo "--- tailscale up stderr/stdout ---" && sed -n '1,200p' /tmp/tailscale-up.log || true
+          tailscale status || true
+          tailscale netcheck || true
+          test -f ~/tailscaled.log && sed -n '1,200p' ~/tailscaled.log || true
+          exit 1
+
+      - name: Resolve VPS Host
+        id: resolve_vps_host
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          TARGET="${VPS_HOST}"
+          if [ -z "${TARGET}" ]; then
+            echo "::error::VPS_HOST is empty."
+            exit 1
+          fi
+
+          if tailscale ping --timeout=10s "${TARGET}" >/dev/null 2>&1; then
+            echo "target_host=${TARGET}" >> "$GITHUB_OUTPUT"
+            echo "resolved_via=direct" >> "$GITHUB_OUTPUT"
+            echo "Resolved VPS host directly: ${TARGET}"
+            exit 0
+          fi
+
+          STATUS_JSON="$(tailscale status --json 2>/dev/null || true)"
+          if [ -z "${STATUS_JSON}" ]; then
+            echo "::error::Unable to read tailscale status JSON for host resolution."
+            exit 1
+          fi
+
+          RESOLVED="$(
+            printf '%s' "${STATUS_JSON}" | TARGET="${TARGET}" node -e '
+              const fs = require("fs");
+              const target = String(process.env.TARGET || "").toLowerCase().replace(/\.$/, "");
+              const normalize = (value) => String(value || "").toLowerCase().replace(/\.$/, "");
+              const status = JSON.parse(fs.readFileSync(0, "utf8"));
+              const peers = Object.values(status.Peer || {});
+              const matchPeer = (peer) => {
+                const host = normalize(peer.HostName);
+                const dns = normalize(peer.DNSName);
+                const short = dns.split(".")[0];
+                const ips = Array.isArray(peer.TailscaleIPs) ? peer.TailscaleIPs : [];
+                if (!ips.length) return "";
+                if ([host, dns, short].includes(target)) return ips[0];
+                if (target && (dns.startsWith(target + ".") || host.startsWith(target))) return ips[0];
+                return "";
+              };
+              for (const peer of peers) {
+                const ip = matchPeer(peer);
+                if (ip) { process.stdout.write(ip); process.exit(0); }
+              }
+              process.exit(0);
+            '
+          )"
+
+          if [ -z "${RESOLVED}" ]; then
+            echo "::error::Cannot resolve VPS_HOST=${TARGET} to a reachable tailnet peer."
+            exit 1
+          fi
+
+          echo "target_host=${RESOLVED}" >> "$GITHUB_OUTPUT"
+
+      - name: Preflight Tailnet Reachability
+        env:
+          TARGET_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+        run: |
+          set -euo pipefail
+          tailscale ping --timeout=10s "$TARGET_HOST"
+
+      - name: Preflight Tailscale SSH Probe (retry)
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ok=0
+          for attempt in 1 2 3; do
+            echo "SSH probe attempt ${attempt}..."
+            if tailscale ssh "${VPS_USER}@${VPS_HOST}" 'echo probe-ok && uname -a'; then
+              ok=1
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Tailscale SSH probe failed after retries"
+            tailscale status || true
+            tailscale netcheck || true
+            exit 1
+          fi
+
+      - name: Deploy via Tailscale SSH (retry)
+        timeout-minutes: 45
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+
+          cat >/tmp/remote-deploy.sh <<'REMOTE'
+          set -euo pipefail
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export PROJECT_DIR=/docker/openclaw-jnqf
+          export BRANCH=dev
+          export OPENCLAW_SERVICE=openclaw
+          export OPENCLAW_HOME=/data/.openclaw
+          SCRIPT_PATH="/docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh"
+
+          AUTOSYNC_TMP=''
+          for d in "${HOME:-}/.cache/vidgen-autosync" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do
+            if mkdir -p "$d" 2>/dev/null && [ -w "$d" ]; then
+              AUTOSYNC_TMP="$d"
+              break
+            fi
+          done
+          if [ -z "$AUTOSYNC_TMP" ]; then
+            echo "No writable autosync temp directory"
+            exit 1
+          fi
+
+          export LOCK_FILE="$AUTOSYNC_TMP/vidgen-openclaw-autosync.lock"
+          export STATE_FILE="$AUTOSYNC_TMP/vidgen-openclaw-autosync.state"
+          export WORKTREE_BASE="$AUTOSYNC_TMP/worktrees"
+          export WHATSAPP_ALERT_STATE_FILE="$AUTOSYNC_TMP/vidgen-openclaw-alert.state"
+          export TELEGRAM_ALERT_STATE_FILE="$AUTOSYNC_TMP/vidgen-openclaw-telegram-alert.state"
+
+          can_write_git=0
+          can_use_docker=0
+          [ -w "${REPO_DIR}/.git" ] && can_write_git=1
+          docker info >/dev/null 2>&1 && can_use_docker=1
+
+          if [ "$can_write_git" -eq 1 ] && [ "$can_use_docker" -eq 1 ]; then
+            bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+            sudo -n env \
+              REPO_DIR="$REPO_DIR" \
+              PROJECT_DIR="$PROJECT_DIR" \
+              BRANCH="$BRANCH" \
+              OPENCLAW_SERVICE="$OPENCLAW_SERVICE" \
+              OPENCLAW_HOME="$OPENCLAW_HOME" \
+              LOCK_FILE="$LOCK_FILE" \
+              STATE_FILE="$STATE_FILE" \
+              WORKTREE_BASE="$WORKTREE_BASE" \
+              WHATSAPP_ALERT_STATE_FILE="$WHATSAPP_ALERT_STATE_FILE" \
+              TELEGRAM_ALERT_STATE_FILE="$TELEGRAM_ALERT_STATE_FILE" \
+              bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          echo "ERROR: deploy user lacks git/docker access and passwordless sudo is unavailable."
+          echo "can_write_git=${can_write_git} can_use_docker=${can_use_docker}"
+          id || true
+          groups || true
+          ls -ld "${REPO_DIR}" "${REPO_DIR}/.git" || true
+          ls -l /var/run/docker.sock || true
+          exit 1
+          REMOTE
+
+          ok=0
+          for attempt in 1 2 3; do
+            echo "Deploy attempt ${attempt}..."
+            if tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' </tmp/remote-deploy.sh; then
+              ok=1
+              break
+            fi
+            sleep $((attempt * 10))
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Deploy via tailscale ssh failed after retries"
+            exit 1
+          fi
+
+      - name: Post-deploy VPS Status Validation
+        timeout-minutes: 20
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+          export BRANCH=dev
+          export STRICT_EXIT=1
+          export LOG_LINES=120
+
+          AUTOSYNC_TMP=''
+          for d in "${HOME:-}/.cache/vidgen-autosync" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do
+            if mkdir -p "$d" 2>/dev/null && [ -w "$d" ]; then
+              AUTOSYNC_TMP="$d"
+              break
+            fi
+          done
+          if [ -z "$AUTOSYNC_TMP" ]; then
+            echo "No writable autosync temp directory"
+            exit 1
+          fi
+          export STATE_FILE="$AUTOSYNC_TMP/vidgen-openclaw-autosync.state"
+
+          SCRIPT_PATH="/docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh"
+          if [ -w "${REPO_DIR}/.git" ]; then
+            bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          if command -v sudo >/dev/null 2>&1 && sudo -n test -w "${REPO_DIR}/.git"; then
+            sudo -n env \
+              REPO_DIR="$REPO_DIR" \
+              BRANCH="$BRANCH" \
+              STRICT_EXIT="$STRICT_EXIT" \
+              LOG_LINES="$LOG_LINES" \
+              STATE_FILE="$STATE_FILE" \
+              bash "$SCRIPT_PATH"
+            exit 0
+          fi
+
+          bash "$SCRIPT_PATH"
+          REMOTE
+
+      - name: Collect VPS Diagnostics On Failure
+        if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
+        timeout-minutes: 20
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host || secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set +e
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' <<'REMOTE' || true
+          set +e
+          STRICT_EXIT=1 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
+          journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true
+          REMOTE
+          tailscale status || true
+          tailscale netcheck || true
+
+      - name: Disconnect Tailscale
+        if: always()
+        run: tailscale logout || true

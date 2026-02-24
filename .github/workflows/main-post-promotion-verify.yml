@@ -1,0 +1,37 @@
+name: Main Post-Promotion Verify
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Supervised verification gates
+        run: bash scripts/supervised_dry_run.sh
+
+      - name: Security preflight strict
+        run: node scripts/security_preflight.js --strict
+
+      - name: Context drift check
+        run: node scripts/context_drift_check.js
+
+      - name: Rollback guidance on failure
+        if: failure()
+        run: |
+          echo "Main verification failed."
+          echo "Trigger workflow: Main Rollback Orchestrator"
+          echo "Input bad_sha=<failing commit on main>"

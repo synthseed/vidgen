@@ -1,0 +1,98 @@
+name: Autonomous Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      deployDev:
+        description: "Run deploy job for dev"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: autonomous-${{ github.event_name }}-${{ github.ref_name || github.head_ref || 'manual' }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Supervised dry-run gates
+        run: bash scripts/supervised_dry_run.sh
+
+  pr_policy_and_evidence:
+    if: github.event_name == 'pull_request'
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enforce PR evidence + branch policy
+        run: node scripts/pr_evidence_check.js
+
+  deploy_dev_candidate:
+    if: github.ref_name == 'dev' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deployDev == true))
+    needs: preflight
+    uses: ./.github/workflows/deploy-openclaw-vps.yml
+    with:
+      branch: dev
+    secrets: inherit
+
+  promotion_readiness:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
+    needs: [preflight, pr_policy_and_evidence]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promotion readiness summary
+        run: |
+          echo "Promotion candidate: dev -> main"
+          echo "Preflight: passed"
+          echo "Policy/evidence: passed"
+          echo "Next: human approval + merge policy"
+
+  failure_feedback:
+    if: failure()
+    needs: [preflight, pr_policy_and_evidence, deploy_dev_candidate, promotion_readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Re-run workflow integrity for actionable diagnostics
+        run: node scripts/workflow_integrity_check.js || true
+
+      - name: Failure response playbook
+        run: |
+          echo "Autonomous pipeline failed."
+          echo "Immediate response:" 
+          echo "1) Inspect failed job logs and first failing command"
+          echo "2) Apply targeted fix on dev"
+          echo "3) Re-run bash scripts/supervised_dry_run.sh locally"
+          echo "4) Record root cause + prevention in docs/ops/autonomy-smoke-log.md"

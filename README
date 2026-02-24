@@ -1,1 +1,58 @@
+# vidgen
 
+Agent-first video automation repository.
+
+## Human Quickstart
+- Architecture: `ARCHITECTURE.md`
+- Agent map: `AGENTS.md`
+- Product specs: `docs/product-specs/index.md`
+- Execution plans: `docs/PLANS.md`
+
+## Current Scope
+- YouTube OAuth channel check: `scripts/youtube_check.js`
+- YouTube resumable upload CLI: `scripts/youtube_upload.js`
+- Payload-driven upload wrapper: `scripts/youtube_upload_from_payload.js`
+
+## Required Env Vars
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `YOUTUBE_REFRESH_TOKEN`
+
+Optional:
+- `YOUTUBE_DEFAULT_PRIVACY`
+- `YOUTUBE_DEFAULT_CATEGORY_ID`
+- `YOUTUBE_MADE_FOR_KIDS`
+
+## Quality Gates
+- `node scripts/openclaw_topology_check.js`
+- `node scripts/check_knowledge_base.js`
+- `node scripts/doc_gardener.js`
+- `node scripts/security_preflight.js`
+- `node scripts/pipeline_orchestrator_dry_run.js`
+
+## VPS Auto Sync (OpenClaw)
+Primary mode (event-driven from GitHub Actions):
+1. Add repository secrets:
+   - `VPS_HOST`
+   - `VPS_USER`
+   - `VPS_SSH_KEY`
+   - optional: `VPS_PORT`
+2. Install service on VPS (timer disabled by default):
+   - `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_vps_autosync_systemd.sh`
+3. Optional WhatsApp failure alerts:
+   - `nano /etc/default/vidgen-openclaw-autosync`
+   - set:
+     - `WHATSAPP_ALERT_ENABLED=1`
+     - `WHATSAPP_ALERT_TARGET=<your whatsapp number, e.g. +1760...>`
+   - reload service units:
+     - `systemctl daemon-reload`
+
+Run once manually:
+- `bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh`
+
+Optional fallback timer (hourly):
+- `ENABLE_TIMER=1 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_vps_autosync_systemd.sh`
+- `systemctl status vidgen-openclaw-autosync.timer --no-pager`
+
+Service logs:
+- `journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager`

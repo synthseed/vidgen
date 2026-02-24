@@ -1,0 +1,35 @@
+name: Docs Knowledge Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+  schedule:
+    - cron: "0 14 * * 1"
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Autonomy Preflight (default)
+        if: github.event_name != 'schedule'
+        run: node scripts/autonomy_preflight.js --mode ci
+
+      - name: Autonomy Preflight (strict schedule)
+        if: github.event_name == 'schedule'
+        run: node scripts/autonomy_preflight.js --mode ci --doc-strict
+
+      - name: Workflow Syntax Lint (actionlint)
+        uses: reviewdog/action-actionlint@v1
