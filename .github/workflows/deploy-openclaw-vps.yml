@@ -50,3 +50,39 @@ jobs:
             export OPENCLAW_SERVICE=openclaw
             export OPENCLAW_HOME=/data/.openclaw
             bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh
+
+      - name: Post-deploy VPS Status Validation
+        if: steps.vps_secrets.outputs.enabled == 'true'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            set -e
+            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+            export BRANCH=dev
+            export STRICT_EXIT=1
+            export LOG_LINES=120
+            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh
+
+      - name: Collect VPS Diagnostics On Failure
+        if: failure() && steps.vps_secrets.outputs.enabled == 'true'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: false
+          command_timeout: 20m
+          script: |
+            set +e
+            export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
+            export BRANCH=dev
+            export LOG_LINES=200
+            bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
+            journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true

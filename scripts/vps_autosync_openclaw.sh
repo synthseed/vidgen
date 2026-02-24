@@ -319,12 +319,7 @@ run_repo_checks_at() {
   local dir="$1"
   log "running repository checks in ${dir}"
   cd "$dir"
-  node scripts/openclaw_topology_check.js
-  node scripts/workflow_integrity_check.js
-  node scripts/check_knowledge_base.js
-  node scripts/doc_gardener.js
-  node scripts/security_preflight.js --strict
-  node scripts/pipeline_orchestrator_dry_run.js >/dev/null
+  node scripts/autonomy_preflight.js --mode vps
 }
 
 handle_dirty_repo() {

@@ -23,24 +23,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: OpenClaw Topology Check
-        run: node scripts/openclaw_topology_check.js
+      - name: Autonomy Preflight (default)
+        if: github.event_name != 'schedule'
+        run: node scripts/autonomy_preflight.js --mode ci
 
-      - name: Workflow Integrity Check
-        run: node scripts/workflow_integrity_check.js
-
-      - name: Knowledge Base Lint
-        run: node scripts/check_knowledge_base.js
-
-      - name: Doc Gardener (Strict on schedule)
+      - name: Autonomy Preflight (strict schedule)
         if: github.event_name == 'schedule'
-        run: node scripts/doc_gardener.js --strict
-
-      - name: Security Preflight
-        run: node scripts/security_preflight.js --strict
-
-      - name: Pipeline Orchestrator Dry Run
-        run: node scripts/pipeline_orchestrator_dry_run.js
+        run: node scripts/autonomy_preflight.js --mode ci --doc-strict
 
       - name: Workflow Syntax Lint (actionlint)
         uses: reviewdog/action-actionlint@v1

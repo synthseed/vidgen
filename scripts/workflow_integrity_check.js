@@ -44,11 +44,10 @@ function main() {
       "push:",
       "- dev",
       "- main",
-      "node scripts/openclaw_topology_check.js",
-      "node scripts/workflow_integrity_check.js",
-      "node scripts/check_knowledge_base.js",
-      "node scripts/security_preflight.js --strict",
-      "node scripts/pipeline_orchestrator_dry_run.js",
+      "name: Autonomy Preflight (default)",
+      "name: Autonomy Preflight (strict schedule)",
+      "node scripts/autonomy_preflight.js --mode ci",
+      "node scripts/autonomy_preflight.js --mode ci --doc-strict",
       "uses: reviewdog/action-actionlint@v1"
     ],
     errors
@@ -70,7 +69,12 @@ function main() {
       "id: vps_secrets",
       "steps.vps_secrets.outputs.enabled == 'true'",
       "uses: appleboy/ssh-action@v1.2.2",
-      "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh"
+      "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh",
+      "name: Post-deploy VPS Status Validation",
+      "STRICT_EXIT=1",
+      "bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh",
+      "name: Collect VPS Diagnostics On Failure",
+      "journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager"
     ],
     errors
   );

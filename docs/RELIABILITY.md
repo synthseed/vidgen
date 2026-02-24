@@ -12,16 +12,19 @@ Last Reviewed: 2026-02-23
 - Strong CLI argument validation in upload scripts.
 - Dry-run mode to verify metadata without publishing.
 - OAuth token refresh before API calls.
-- CI checks on `dev/main` push for topology/docs/security/orchestrator dry-run.
+- Unified autonomy preflight (`scripts/autonomy_preflight.js`) used in CI and VPS candidate validation.
+- CI checks on `dev/main` push plus workflow lint.
 - Event-driven VPS deploy after CI pass, with auto-sync runner for apply/verify/rollback.
+- Post-deploy strict status validation (`STRICT_EXIT=1` on `vps_autosync_status.sh`) and automatic diagnostics on workflow failure.
 - Optional hourly fallback timer for disconnected webhook periods.
-- Optional WhatsApp failure alerts with cooldown in VPS autosync runner.
+- Optional Telegram/WhatsApp failure alerts with cooldown in VPS autosync runner.
 
 ## Required Next Controls
 - Retry policy for resumable upload failures.
 - Structured logs for each upload stage.
 - Integration tests using stubbed API responses.
 - Explicit channel-to-agent binding verification tests.
+- Closed-loop learning adapter that turns postmortem findings into tracked backlog updates automatically.
 
 ## Failure Modes
 - Missing/invalid OAuth env vars.

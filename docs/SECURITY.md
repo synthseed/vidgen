@@ -50,6 +50,7 @@ Last Reviewed: 2026-02-23
 - Any new provider integration must document token lifecycle and rotation.
 - Any change adding tooling, plugins, or skills must include approval evidence.
 - Any workflow that can execute shell commands must document guardrails and blocked command classes.
+- Deployment workflows must include both pre-deploy gates and post-deploy validation with retained logs.
 
 ## Threats to Track
 - Accidental secret leakage in CLI output.
