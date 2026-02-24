@@ -72,6 +72,7 @@ function buildSteps(options) {
     { name: "Knowledge Base", cmd: "node", args: ["scripts/check_knowledge_base.js"] },
     { name: "Doc Gardener", cmd: "node", args: docArgs },
     { name: "Memory Hygiene", cmd: "node", args: memoryArgs },
+    { name: "Context Drift", cmd: "node", args: ["scripts/context_drift_check.js"] },
     { name: "Security Preflight", cmd: "node", args: ["scripts/security_preflight.js", "--strict"] },
     { name: "Pipeline Dry Run", cmd: "node", args: ["scripts/pipeline_orchestrator_dry_run.js"] }
   ];

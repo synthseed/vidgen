@@ -254,14 +254,37 @@ jobs:
           set -euo pipefail
           tailscale ping --timeout=10s "$TARGET_HOST"
 
-      - name: Deploy via Tailscale SSH
+      - name: Preflight Tailscale SSH Probe (retry)
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ok=0
+          for attempt in 1 2 3; do
+            echo "SSH probe attempt ${attempt}..."
+            if tailscale ssh "${VPS_USER}@${VPS_HOST}" 'echo probe-ok && uname -a'; then
+              ok=1
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Tailscale SSH probe failed after retries"
+            tailscale status || true
+            tailscale netcheck || true
+            exit 1
+          fi
+
+      - name: Deploy via Tailscale SSH (retry)
         timeout-minutes: 45
         env:
           VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' <<'REMOTE'
+
+          cat >/tmp/remote-deploy.sh <<'REMOTE'
           set -euo pipefail
           export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen
           export PROJECT_DIR=/docker/openclaw-jnqf
@@ -271,6 +294,20 @@ jobs:
           bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh
           REMOTE
 
+          ok=0
+          for attempt in 1 2 3; do
+            echo "Deploy attempt ${attempt}..."
+            if tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' </tmp/remote-deploy.sh; then
+              ok=1
+              break
+            fi
+            sleep $((attempt * 10))
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Deploy via tailscale ssh failed after retries"
+            exit 1
+          fi
+
       - name: Post-deploy VPS Status Validation
         timeout-minutes: 20
         env:
@@ -279,6 +316,22 @@ jobs:
         run: |
           set -euo pipefail
           tailscale ssh "${VPS_USER}@${VPS_HOST}" 'STRICT_EXIT=1 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh'
+
+      - name: Collect VPS Diagnostics On Failure
+        if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
+        timeout-minutes: 20
+        env:
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host || secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set +e
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" 'bash -s' <<'REMOTE' || true
+          set +e
+          STRICT_EXIT=1 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true
+          journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true
+          REMOTE
+          tailscale status || true
+          tailscale netcheck || true
 
       - name: Disconnect Tailscale
         if: always()
