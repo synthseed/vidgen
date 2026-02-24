@@ -57,5 +57,6 @@ node scripts/doc_gardener.js
 ## Related Docs
 - `openclaw-branch-promotion.md`
 - `openclaw-runtime-hardening.md`
+- `autonomy-control-matrix.md`
 - `../SECURITY.md`
 - `../RELIABILITY.md`
