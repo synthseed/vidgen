@@ -526,8 +526,9 @@ run_candidate_checks() {
     git worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
   fi
   git worktree add --detach "$worktree_dir" "$commit" >/dev/null
-  trap 'git -C "$REPO_DIR" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true' RETURN
+  trap 'cd "$REPO_DIR" >/dev/null 2>&1 || true; git -C "$REPO_DIR" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true' RETURN
   run_repo_checks_at "$worktree_dir"
+  cd "$REPO_DIR"
   git -C "$REPO_DIR" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
   trap - RETURN
 }
@@ -580,6 +581,7 @@ main() {
   if [[ "$local_current" != "$TARGET_COMMIT" ]]; then
     log "new commit detected on ${BRANCH}: ${TARGET_COMMIT}"
     run_candidate_checks "$TARGET_COMMIT"
+    cd "$REPO_DIR"
     git checkout "$BRANCH" >/dev/null
     git pull --ff-only origin "$BRANCH" >/dev/null
     local_current="$(git rev-parse HEAD)"
