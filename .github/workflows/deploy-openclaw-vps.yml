@@ -180,22 +180,96 @@ jobs:
           test -f ~/tailscaled.log && sed -n '1,200p' ~/tailscaled.log || true
           exit 1
 
-      - name: Preflight Tailnet Reachability
+      - name: Resolve VPS Host
+        id: resolve_vps_host
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           set -euo pipefail
-          if tailscale ping --timeout=10s "$VPS_HOST"; then
-            echo "Tailnet reachability OK: ${VPS_HOST}"
+          TARGET="${VPS_HOST}"
+          if [ -z "${TARGET}" ]; then
+            echo "::error::VPS_HOST is empty."
+            exit 1
+          fi
+
+          if tailscale ping --timeout=10s "${TARGET}" >/dev/null 2>&1; then
+            echo "target_host=${TARGET}" >> "$GITHUB_OUTPUT"
+            echo "resolved_via=direct" >> "$GITHUB_OUTPUT"
+            echo "Resolved VPS host directly: ${TARGET}"
+            exit 0
+          fi
+
+          STATUS_JSON="$(tailscale status --json 2>/dev/null || true)"
+          if [ -z "${STATUS_JSON}" ]; then
+            echo "::error::Unable to read tailscale status JSON for host resolution."
+            exit 1
+          fi
+
+          RESOLVED="$(
+            printf '%s' "${STATUS_JSON}" | TARGET="${TARGET}" node -e '
+              const fs = require("fs");
+              const target = String(process.env.TARGET || "").toLowerCase().replace(/\.$/, "");
+              const normalize = (value) => String(value || "").toLowerCase().replace(/\.$/, "");
+              const status = JSON.parse(fs.readFileSync(0, "utf8"));
+              const peers = Object.values(status.Peer || {});
+              const matchPeer = (peer) => {
+                const host = normalize(peer.HostName);
+                const dns = normalize(peer.DNSName);
+                const short = dns.split(".")[0];
+                const ips = Array.isArray(peer.TailscaleIPs) ? peer.TailscaleIPs : [];
+                if (!ips.length) return "";
+                if ([host, dns, short].includes(target)) return ips[0];
+                if (target && (dns.startsWith(target + ".") || host.startsWith(target))) return ips[0];
+                return "";
+              };
+              for (const peer of peers) {
+                const ip = matchPeer(peer);
+                if (ip) {
+                  process.stdout.write(ip);
+                  process.exit(0);
+                }
+              }
+              process.exit(0);
+            '
+          )"
+
+          if [ -z "${RESOLVED}" ]; then
+            echo "::error::Cannot resolve VPS_HOST=${TARGET} to a reachable tailnet peer."
+            printf '%s' "${STATUS_JSON}" | node -e '
+              const fs = require("fs");
+              const status = JSON.parse(fs.readFileSync(0, "utf8"));
+              const peers = Object.values(status.Peer || {});
+              const names = peers.map((peer) => {
+                const host = peer.HostName || "";
+                const dns = String(peer.DNSName || "").replace(/\.$/, "");
+                const ip = Array.isArray(peer.TailscaleIPs) && peer.TailscaleIPs.length ? peer.TailscaleIPs[0] : "";
+                return `${host || dns || "<unknown>"}${ip ? ` (${ip})` : ""}`;
+              });
+              console.log("Known tailnet peers: " + (names.length ? names.join(", ") : "<none>"));
+            ' || true
+            exit 1
+          fi
+
+          echo "target_host=${RESOLVED}" >> "$GITHUB_OUTPUT"
+          echo "resolved_via=peer_lookup" >> "$GITHUB_OUTPUT"
+          echo "Resolved VPS host ${TARGET} -> ${RESOLVED}"
+
+      - name: Preflight Tailnet Reachability
+        env:
+          TARGET_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
+        run: |
+          set -euo pipefail
+          if tailscale ping --timeout=10s "$TARGET_HOST"; then
+            echo "Tailnet reachability OK: ${TARGET_HOST}"
           else
-            echo "::error::Cannot reach ${VPS_HOST} over tailnet."
+            echo "::error::Cannot reach ${TARGET_HOST} over tailnet."
             exit 1
           fi
 
       - name: Deploy via Tailscale SSH
         timeout-minutes: 45
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
@@ -204,7 +278,7 @@ jobs:
       - name: Post-deploy VPS Status Validation
         timeout-minutes: 20
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
@@ -214,7 +288,7 @@ jobs:
         if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
         timeout-minutes: 20
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ steps.resolve_vps_host.outputs.target_host || secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set +e
