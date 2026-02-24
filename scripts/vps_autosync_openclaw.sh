@@ -354,6 +354,20 @@ ensure_git_safe_directory() {
   git config --global --add safe.directory "$REPO_DIR" >/dev/null 2>&1 || true
 }
 
+initialize_git_ssh() {
+  # Self-heal for first-run hosts: accept and persist unknown host keys non-interactively.
+  # Keeps BatchMode on to avoid password prompts in CI/automation.
+  local ssh_dir known_hosts
+  ssh_dir="${HOME:-/tmp}/.ssh"
+  known_hosts="${ssh_dir}/known_hosts"
+  mkdir -p "$ssh_dir" >/dev/null 2>&1 || true
+  chmod 700 "$ssh_dir" >/dev/null 2>&1 || true
+  touch "$known_hosts" >/dev/null 2>&1 || true
+  chmod 600 "$known_hosts" >/dev/null 2>&1 || true
+
+  export GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=${known_hosts}"
+}
+
 acquire_lock() {
   local lock_dir
   lock_dir="$(dirname "$LOCK_FILE")"
@@ -562,6 +576,7 @@ main() {
   initialize_runtime_paths
   acquire_lock
   ensure_git_safe_directory
+  initialize_git_ssh
 
   cd "$REPO_DIR"
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
