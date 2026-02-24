@@ -67,6 +67,7 @@ function main() {
     'scripts/memory_hardened_watcher.sh',
     'scripts/memory_hardened_phase2_enable.sh',
     'scripts/memory_hardened_dream_cycle.js',
+    'scripts/memory_hardened_dream_log_verify.js',
     'scripts/memory_redaction.js',
     'scripts/memory_schema_validate.js',
     'memory/README.md',
