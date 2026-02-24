@@ -23,7 +23,7 @@ while true; do
   now=$(date +%s)
 
   if [ "$count" -ge "$THRESHOLD" ] && [ $((now-last_run)) -ge "$COOLDOWN" ]; then
-    OPENCLAW_WORKSPACE="$WORKSPACE" HARDENED_MEMORY_SHADOW=1 node "$WORKSPACE/scripts/memory_hardened_observer.js" || true
+    OPENCLAW_WORKSPACE="$WORKSPACE" HARDENED_MEMORY_SHADOW=0 node "$WORKSPACE/scripts/memory_hardened_observer.js" || true
     OPENCLAW_WORKSPACE="$WORKSPACE" node "$WORKSPACE/scripts/memory_schema_validate.js" || true
     echo "$now" > "$STAMP_FILE"
     last_run="$now"

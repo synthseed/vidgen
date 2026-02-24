@@ -6,7 +6,7 @@ Last Reviewed: 2026-02-24
 This directory stores runtime memory artifacts used by the hardened memory module.
 
 ## Layout
-- `hardened/observations.shadow.jsonl` — shadow-mode captured entries (default)
+- `hardened/observations.jsonl` — shadow-mode captured entries (default)
 - `hardened/observations.jsonl` — active capture target (when enabled)
 - `hardened/compact.jsonl` — reflected/deduplicated entries
 - `hardened/archive/` — archived entries

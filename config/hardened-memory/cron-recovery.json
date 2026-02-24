@@ -8,7 +8,7 @@
   "sessionTarget": "isolated",
   "payload": {
     "kind": "agentTurn",
-    "message": "Run: OPENCLAW_WORKSPACE=/data/repos/vidgen HARDENED_MEMORY_SHADOW=1 node scripts/memory_hardened_recovery.js && node scripts/memory_schema_validate.js. Reply NO_REPLY if successful; alert on error.",
+    "message": "Run: OPENCLAW_WORKSPACE=/data/repos/vidgen HARDENED_MEMORY_SHADOW=0 node scripts/memory_hardened_recovery.js && node scripts/memory_schema_validate.js. Reply NO_REPLY if successful; alert on error.",
     "timeoutSeconds": 120
   },
   "delivery": { "mode": "none" }

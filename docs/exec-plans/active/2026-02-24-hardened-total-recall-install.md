@@ -7,7 +7,7 @@ Last Reviewed: 2026-02-24
 User requested installation of a Total Recall-style memory module with hardening and compatibility with existing branch gates, CI checks, and multi-agent memory contracts.
 
 ## Objective
-Install a hardened, schema-based persistent memory module in shadow mode, integrate with repo controls, and update agent memory docs for practical usage without introducing security regressions.
+Install a hardened, schema-based persistent memory module in active mode, integrate with repo controls, and update agent memory docs for practical usage without introducing security regressions.
 
 ## Constraints
 - No unsafe env loading (`eval`/`source`) in new module scripts.

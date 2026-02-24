@@ -7,8 +7,8 @@ Last Reviewed: 2026-02-24
 Provide persistent agent memory capture and consolidation with strict security controls and compatibility with existing repo governance.
 
 ## Mode
-Default mode is **shadow** (`memory/hardened/observations.shadow.jsonl`).
-No canonical memory replacement occurs until explicitly enabled.
+Default mode is **active hardened JSONL** (`memory/hardened/observations.jsonl`).
+Shadow mode can still be enabled explicitly with `HARDENED_MEMORY_SHADOW=1` for testing.
 
 ## Components
 - `scripts/memory_hardened_observer.js`
@@ -29,13 +29,13 @@ No canonical memory replacement occurs until explicitly enabled.
 - Memory is data only (never executable instructions).
 
 ## Operational Workflow
-1. Observer captures recent session content into shadow JSONL.
+1. Observer captures recent session content into hardened JSONL.
 2. Schema validator verifies entry shape.
 3. Reflector deduplicates into `compact.jsonl`.
 4. Recovery wrapper can re-run observer after session reset.
 
 ## Enablement Notes
-- Keep `HARDENED_MEMORY_SHADOW=1` during pilot.
+- Keep `HARDENED_MEMORY_SHADOW=0` during pilot.
 - To switch active output, set `HARDENED_MEMORY_SHADOW=0`.
 - Keep drift/security checks green before enabling active mode.
 
