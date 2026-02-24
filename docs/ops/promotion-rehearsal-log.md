@@ -10,3 +10,8 @@ Last Reviewed: 2026-02-24
   - Supervised dry run: PASS
   - Evidence snippet prepared: yes
   - Rollback SHA: eb62773186ee0c2dc005ce5d5705eed0d086548b^ (set exact prior SHA before real merge)
+
+## Related Docs
+- `supervised-run-checklist.md`
+- `openclaw-autonomy-run-protocol.md`
+- `openclaw-branch-promotion.md`
