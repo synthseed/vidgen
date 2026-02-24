@@ -51,6 +51,14 @@ Phase 2 adds operational parity controls while preserving hardening:
 bash scripts/memory_hardened_phase2_enable.sh
 ```
 
+### Compaction Hook Compatibility Note
+Current OpenClaw runtime config rejects a top-level `compaction` key, so direct `memoryFlush` config injection is not used in this deployment.
+Safe fallback is enforced with layered scheduling:
+- observer (15m)
+- reflector (hourly)
+- recovery (20m)
+- optional watcher loop
+
 ## Validation
 ```bash
 node scripts/memory_hardened_observer.js

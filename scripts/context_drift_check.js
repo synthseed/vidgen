@@ -71,6 +71,7 @@ function main() {
     'memory/README.md',
     'config/hardened-memory/cron-observer.json',
     'config/hardened-memory/cron-reflector.json',
+    'config/hardened-memory/cron-recovery.json',
     'config/hardened-memory/memory-flush-snippet.json'
   ];
   for (const rel of requiredMemoryArtifacts) {
