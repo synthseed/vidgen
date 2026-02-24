@@ -273,7 +273,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export PROJECT_DIR=/docker/openclaw-jnqf; export BRANCH=dev; export OPENCLAW_SERVICE=openclaw; export OPENCLAW_HOME=/data/.openclaw; export AUTOSYNC_TMP=/docker/openclaw-jnqf/data/repos/vidgen/.autosync-tmp; mkdir -p \"\$AUTOSYNC_TMP\"; export LOCK_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.lock\"; export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; export WORKTREE_BASE=\"\$AUTOSYNC_TMP/worktrees\"; export WHATSAPP_ALERT_STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-alert.state\"; export TELEGRAM_ALERT_STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-telegram-alert.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh"
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "set -e; export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export PROJECT_DIR=/docker/openclaw-jnqf; export BRANCH=dev; export OPENCLAW_SERVICE=openclaw; export OPENCLAW_HOME=/data/.openclaw; AUTOSYNC_TMP=''; for d in \"\${HOME:-}/.cache/vidgen-autosync\" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do if mkdir -p \"\$d\" 2>/dev/null && [ -w \"\$d\" ]; then AUTOSYNC_TMP=\"\$d\"; break; fi; done; if [ -z \"\$AUTOSYNC_TMP\" ]; then echo 'No writable autosync temp directory'; exit 1; fi; export LOCK_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.lock\"; export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; export WORKTREE_BASE=\"\$AUTOSYNC_TMP/worktrees\"; export WHATSAPP_ALERT_STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-alert.state\"; export TELEGRAM_ALERT_STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-telegram-alert.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_openclaw.sh"
 
       - name: Post-deploy VPS Status Validation
         timeout-minutes: 20
@@ -282,7 +282,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export STRICT_EXIT=1; export LOG_LINES=120; export AUTOSYNC_TMP=/docker/openclaw-jnqf/data/repos/vidgen/.autosync-tmp; export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh"
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "set -e; export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export STRICT_EXIT=1; export LOG_LINES=120; AUTOSYNC_TMP=''; for d in \"\${HOME:-}/.cache/vidgen-autosync\" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do if mkdir -p \"\$d\" 2>/dev/null && [ -w \"\$d\" ]; then AUTOSYNC_TMP=\"\$d\"; break; fi; done; if [ -z \"\$AUTOSYNC_TMP\" ]; then echo 'No writable autosync temp directory'; exit 1; fi; export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh"
 
       - name: Collect VPS Diagnostics On Failure
         if: failure() && steps.deploy_secrets.outputs.enabled == 'true'
@@ -292,7 +292,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set +e
-          tailscale ssh "${VPS_USER}@${VPS_HOST}" "export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export LOG_LINES=200; export AUTOSYNC_TMP=/docker/openclaw-jnqf/data/repos/vidgen/.autosync-tmp; export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true; journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true" || true
+          tailscale ssh "${VPS_USER}@${VPS_HOST}" "set +e; export REPO_DIR=/docker/openclaw-jnqf/data/repos/vidgen; export BRANCH=dev; export LOG_LINES=200; AUTOSYNC_TMP=''; for d in \"\${HOME:-}/.cache/vidgen-autosync\" /var/tmp/vidgen-autosync /tmp/vidgen-autosync; do if mkdir -p \"\$d\" 2>/dev/null && [ -w \"\$d\" ]; then AUTOSYNC_TMP=\"\$d\"; break; fi; done; [ -n \"\$AUTOSYNC_TMP\" ] && export STATE_FILE=\"\$AUTOSYNC_TMP/vidgen-openclaw-autosync.state\"; bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/vps_autosync_status.sh || true; journalctl -u vidgen-openclaw-autosync.service -n 200 --no-pager || true" || true
 
       - name: Disconnect Tailscale
         if: always()
