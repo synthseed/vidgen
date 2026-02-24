@@ -1,0 +1,12 @@
+# Default ownership
+* @synthseed
+
+# Governance + deployment controls
+/.github/workflows/* @synthseed
+/.github/pull_request_template.md @synthseed
+/docs/ops/* @synthseed
+/openclaw/openclaw.json @synthseed
+/openclaw/workspace-templates/* @synthseed
+/scripts/autonomy_preflight.js @synthseed
+/scripts/supervised_dry_run.sh @synthseed
+/scripts/pr_evidence_check.js @synthseed

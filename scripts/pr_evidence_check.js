@@ -23,9 +23,13 @@ const pr = payload.pull_request || {};
 const baseRef = pr.base && pr.base.ref;
 const headRef = pr.head && pr.head.ref;
 
-if (baseRef !== 'main' || headRef !== 'dev') {
+if (baseRef !== 'main') {
   console.log(`PR evidence check skipped for ${headRef || 'unknown'} -> ${baseRef || 'unknown'}`);
   process.exit(0);
+}
+
+if (headRef !== 'dev') {
+  fail(`PRs targeting main must come from dev (got head=${headRef || 'unknown'})`);
 }
 
 const body = String(pr.body || '');

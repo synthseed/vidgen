@@ -42,7 +42,10 @@ Rules:
 4. QA gate: pass verdict + regression summary.
 5. Security gate: `node scripts/security_preflight.js` passes.
 6. Knowledge gate: `node scripts/check_knowledge_base.js` passes.
-7. Release gate: rollback commit SHA documented before merge.
+7. Policy+evidence gate (single CI gate):
+   - head branch must be `dev` for PRs targeting `main`
+   - supervised autonomy evidence fields must be present in PR body
+8. Release gate: rollback commit SHA documented before merge.
 
 ## Required Evidence in PR
 - Gate checklist with owner + timestamp.
