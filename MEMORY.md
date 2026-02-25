@@ -24,6 +24,7 @@ Maintain main-agent continuity memory for environment safety, delegation quality
 
 ### Operating Preferences
 - Capture stable style/process preferences that improve consistency.
+- [2026-02-25] User hard boundary: never run `tailscale serve reset` and never run `docker compose up` on their VPS environment during live recovery; use targeted, non-destructive commands instead.
 
 ## Procedural Memory
 ### Reusable Workflows
@@ -31,6 +32,8 @@ Maintain main-agent continuity memory for environment safety, delegation quality
 
 ### Known Good Defaults
 - Keep safe defaults and fallback paths that repeatedly work.
+- For VPS recovery, prefer: `docker compose ps`, `docker compose restart <service>`, `docker compose create <service>`, `docker compose start <service>`, and route-level `tailscale serve --bg ...` updates.
+- Explicitly avoid destructive/global resets unless user explicitly re-approves in that moment.
 
 ## Episodic Memory
 ### Active Decisions
