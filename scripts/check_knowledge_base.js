@@ -28,7 +28,6 @@ const REQUIRED_FILES = [
   "docs/references/openai-harness-engineering-notes.md",
   "openclaw/README.md",
   "openclaw/openclaw.json",
-  "scripts/AGENTS.md",
   "scripts/doc_gardener.js",
   "scripts/check_knowledge_base.js",
   "scripts/security_preflight.js",

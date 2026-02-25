@@ -3,12 +3,22 @@ Owner: platform
 Status: active
 Last Reviewed: 2026-02-23
 
-No frontend is currently implemented in this repository.
+Frontend now includes `apps/control-center` (Next.js + TypeScript) for internal OpenClaw operations.
 
-If UI surfaces are added:
-- Define visual system, accessibility, and motion constraints here.
-- Add explicit component contracts and acceptance criteria.
-- Link each UI feature to a product spec and execution plan.
+## Current UI Surface
+- `apps/control-center`: read-only operations dashboard (Phase 0)
+  - Dark theme by default
+  - `/api/overview` aggregator endpoint
+  - KPI + module summary cards for cron, hardened memory, dream-cycle, and agent usage
+
+## UI constraints
+- Dark professional visual language with high contrast text.
+- Keyboard-accessible controls for future interactive elements.
+- Partial degradation behavior: failed data source should not blank entire dashboard.
+
+## Contract links
+- Product spec: `product-specs/openclaw-control-center.md`
+- Execution plan: `exec-plans/active/2026-02-25-openclaw-control-center-phase0.md`
 
 ## Related Docs
 - `PRODUCT_SENSE.md`
