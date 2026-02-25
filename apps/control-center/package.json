@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start -p 3210",
     "lint": "next lint",
-    "smoke:overview": "node scripts/smoke_overview.js"
+    "smoke:overview": "node scripts/smoke_overview.js",
+    "ingest:snapshot": "node scripts/ingest_snapshot.js"
   },
   "dependencies": {
     "next": "16.1.6",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "recharts": "2.15.1"
   },
   "devDependencies": {
     "@types/node": "22.10.1",

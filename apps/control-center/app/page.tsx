@@ -1,5 +1,7 @@
 import { getOverview } from '@/lib/overview';
+import { readMetricHistory } from '@/lib/metrics';
 import { KpiCard } from '@/components/kpi-card';
+import { MetricsChart } from '@/components/metrics-chart';
 
 function toneFromState(state: string): 'ok' | 'warn' | 'err' {
   if (state === 'ok' || state === 'healthy') return 'ok';
@@ -8,7 +10,7 @@ function toneFromState(state: string): 'ok' | 'warn' | 'err' {
 }
 
 export default async function Page() {
-  const data = await getOverview('24h');
+  const [data, points] = await Promise.all([getOverview('24h'), readMetricHistory(120)]);
 
   return (
     <main className="main">
@@ -49,6 +51,11 @@ export default async function Page() {
               ))
             )}
           </ul>
+        </div>
+
+        <div className="card span-12">
+          <h3 style={{ marginTop: 0 }}>Operational Trend (Phase 1)</h3>
+          {points.length === 0 ? <div className="muted">No ingested history yet. Run ingest snapshot script to populate.</div> : <MetricsChart points={points} />}
         </div>
 
         <div className="card span-12">

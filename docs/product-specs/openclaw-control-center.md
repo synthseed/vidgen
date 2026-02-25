@@ -17,8 +17,9 @@ Define behavior contract for an internal web app that provides operational visib
    - Dream cycle (run counts, dry/live split, latest run health)
    - Agent usage (active sessions and per-agent usage counts)
 3. Unified time range selector (1h, 24h, 7d) for API queries.
-4. Partial degradation behavior: unavailable sources do not block all modules.
-5. Read-only mode in MVP (no restart/retry control actions).
+4. Trend endpoint for operational history (`/api/metrics`) using ingested snapshots.
+5. Partial degradation behavior: unavailable sources do not block all modules.
+6. Read-only mode in MVP (no restart/retry control actions).
 
 ## Data Sources (MVP)
 - `openclaw status --deep`
@@ -33,6 +34,7 @@ Define behavior contract for an internal web app that provides operational visib
 4. Dream-cycle data reflects `memory/hardened/dashboard.json` latest values.
 5. Cron section surfaces job counts and failure indicators based on available runtime data.
 6. Agent usage section includes per-agent counts over selected time range.
+7. `/api/metrics` returns ordered history points and dashboard renders trend chart when points exist.
 
 ## Non-Goals (MVP)
 - Control actions (restart/retry/approve transitions).

@@ -6,10 +6,12 @@ Last Reviewed: 2026-02-23
 Frontend now includes `apps/control-center` (Next.js + TypeScript) for internal OpenClaw operations.
 
 ## Current UI Surface
-- `apps/control-center`: read-only operations dashboard (Phase 0)
+- `apps/control-center`: read-only operations dashboard (Phase 0/1 foundation)
   - Dark theme by default
   - `/api/overview` aggregator endpoint
+  - `/api/metrics` trend endpoint backed by ingest snapshots
   - KPI + module summary cards for cron, hardened memory, dream-cycle, and agent usage
+  - Trend chart for operational metrics over time
 
 ## UI constraints
 - Dark professional visual language with high contrast text.
