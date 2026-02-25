@@ -8,6 +8,11 @@ PROJECT_DIR="${PROJECT_DIR:-/docker/openclaw-jnqf}"
 BRANCH="${BRANCH:-dev}"
 OPENCLAW_SERVICE="${OPENCLAW_SERVICE:-openclaw}"
 OPENCLAW_HOME="${OPENCLAW_HOME:-/data/.openclaw}"
+CONTROL_CENTER_AUTODEPLOY="${CONTROL_CENTER_AUTODEPLOY:-1}"
+CONTROL_CENTER_APP_DIR="${CONTROL_CENTER_APP_DIR:-/docker/openclaw-jnqf/data/repos/vidgen/apps/control-center}"
+CONTROL_CENTER_SERVICE="${CONTROL_CENTER_SERVICE:-vidgen-control-center.service}"
+CONTROL_CENTER_BUILD_USER="${CONTROL_CENTER_BUILD_USER:-clawuser}"
+CONTROL_CENTER_DIST_DIR="${CONTROL_CENTER_DIST_DIR:-.next-local}"
 LOCK_FILE="${LOCK_FILE:-/tmp/vidgen-openclaw-autosync.lock}"
 SLEEP_AFTER_RESTART="${SLEEP_AFTER_RESTART:-5}"
 STATE_FILE="${STATE_FILE:-/tmp/vidgen-openclaw-autosync.state}"
@@ -519,6 +524,48 @@ run_runtime_verify() {
   fi
 }
 
+deploy_control_center_if_enabled() {
+  if [[ "$CONTROL_CENTER_AUTODEPLOY" != "1" ]]; then
+    log "control-center autodeploy disabled (CONTROL_CENTER_AUTODEPLOY=${CONTROL_CENTER_AUTODEPLOY})"
+    return 0
+  fi
+
+  if [[ ! -d "$CONTROL_CENTER_APP_DIR" ]]; then
+    log "control-center app dir not found; skipping (${CONTROL_CENTER_APP_DIR})"
+    return 0
+  fi
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    log "systemctl unavailable; skipping control-center autodeploy"
+    return 0
+  fi
+
+  if ! systemctl list-unit-files "$CONTROL_CENTER_SERVICE" >/dev/null 2>&1; then
+    log "control-center service unit not installed; skipping (${CONTROL_CENTER_SERVICE})"
+    return 0
+  fi
+
+  log "building and restarting control-center service (${CONTROL_CENTER_SERVICE})"
+  cd "$CONTROL_CENTER_APP_DIR"
+
+  if id "$CONTROL_CENTER_BUILD_USER" >/dev/null 2>&1; then
+    runuser -u "$CONTROL_CENTER_BUILD_USER" -- npm ci --no-audit --no-fund >/dev/null || return 1
+    runuser -u "$CONTROL_CENTER_BUILD_USER" -- env CONTROL_CENTER_DIST_DIR="$CONTROL_CENTER_DIST_DIR" npm run build >/dev/null || return 1
+  else
+    npm ci --no-audit --no-fund >/dev/null || return 1
+    env CONTROL_CENTER_DIST_DIR="$CONTROL_CENTER_DIST_DIR" npm run build >/dev/null || return 1
+  fi
+
+  systemctl restart "$CONTROL_CENTER_SERVICE" || return 1
+
+  if ! curl -fsS "http://127.0.0.1:3210/control-center/api/healthz" >/dev/null; then
+    log "control-center health check failed after restart"
+    return 1
+  fi
+
+  log "control-center autodeploy complete"
+}
+
 rollback_runtime_config() {
   log "restoring runtime config from backup"
   cd "$PROJECT_DIR"
@@ -565,6 +612,7 @@ deploy_current_repo() {
   prepare_runtime_backup || return 1
   run_runtime_apply || return 1
   run_runtime_verify || return 1
+  deploy_control_center_if_enabled || return 1
   mark_success "$DEPLOYED_COMMIT"
   log "sync complete on commit ${DEPLOYED_COMMIT}"
 }

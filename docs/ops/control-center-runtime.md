@@ -18,6 +18,8 @@ Install/refresh units:
 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_systemd.sh
 ```
 
+If `vidgen-openclaw-autosync.service` is active, new `dev` commits are auto-applied to Control Center as part of autosync (pull -> build -> restart -> health check), so manual rebuild scripts are not needed for normal updates.
+
 ## Required Environment
 `/etc/default/vidgen-control-center`:
 - `NODE_ENV=production`
