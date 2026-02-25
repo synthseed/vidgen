@@ -1,0 +1,11 @@
+[Unit]
+Description=Auto-update Vidgen Control Center from git and restart service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/docker/openclaw-jnqf/data/repos/vidgen
+ExecStart=/usr/bin/env bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/control_center_autoupdate.sh

@@ -10,6 +10,8 @@ Operate the Control Center app on VPS in a stable, repeatable way using systemd 
 - App service: `vidgen-control-center.service`
 - Ingest timer: `vidgen-control-center-ingest.timer`
 - Ingest job: `vidgen-control-center-ingest.service` (runs snapshot + retention prune + rollup build)
+- Auto-update timer: `vidgen-control-center-autoupdate.timer`
+- Auto-update job: `vidgen-control-center-autoupdate.service` (pull/build/restart when `dev` changes)
 
 Install/refresh units:
 ```bash
@@ -34,6 +36,7 @@ bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_syst
 ```bash
 systemctl status vidgen-control-center --no-pager
 systemctl status vidgen-control-center-ingest.timer --no-pager
+systemctl status vidgen-control-center-autoupdate.timer --no-pager
 curl -f http://127.0.0.1:3210/control-center
 curl -f http://127.0.0.1:3210/control-center/api/healthz
 curl -f http://127.0.0.1:3210/control-center/api/drilldown/cron

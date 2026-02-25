@@ -69,6 +69,14 @@ UPDATE_VISUAL_BASELINES=1 npm run check:visual
 # normal validation
 npm run check:visual
 ```
+Now covers all top-level BI routes: `/`, `/cron`, `/agents`, `/connections`, `/optimization`, `/skills`.
+
+## BI cohesion contract check
+```bash
+cd apps/control-center
+npm run check:bi-contract
+```
+Validates every top-level BI route exposes unified nav + controls (`Time`, `Compare`, `Segment`) and a trend module.
 
 ## Ingest + retention + rollups
 ```bash
@@ -79,7 +87,7 @@ OPENCLAW_WORKSPACE=/data/repos/vidgen npm run ingest:maintenance
 Maintenance includes retention pruning (`CONTROL_CENTER_RETENTION_DAYS`, default `7`) and rollup generation.
 
 ## Managed runtime (recommended on VPS)
-Install systemd units from repo templates:
+Install systemd units from repo templates (includes app service, ingest timer, and auto-update timer):
 ```bash
 bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_systemd.sh
 ```
