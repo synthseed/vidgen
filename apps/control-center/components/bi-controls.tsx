@@ -1,4 +1,6 @@
 
+import Link from 'next/link';
+
 type Range = '1h' | '24h' | '7d' | '30d';
 
 type Props = {
@@ -21,25 +23,25 @@ export function BiControls({ path, range, compare, segment }: Props) {
         <span className="controls-label">Time</span>
         <div className="chip-row">
           {ranges.map((option) => (
-            <a key={option} href={href(path, option, compare, segment)} className={`chip-link ${range === option ? 'chip-link-active' : ''}`}>
+            <Link key={option} href={href(path, option, compare, segment)} className={`chip-link ${range === option ? 'chip-link-active' : ''}`}>
               {option}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
       <div>
         <span className="controls-label">Compare</span>
         <div className="chip-row">
-          <a href={href(path, range, 'off', segment)} className={`chip-link ${compare === 'off' ? 'chip-link-active' : ''}`}>Off</a>
-          <a href={href(path, range, 'previous', segment)} className={`chip-link ${compare === 'previous' ? 'chip-link-active' : ''}`}>Previous window</a>
+          <Link href={href(path, range, 'off', segment)} className={`chip-link ${compare === 'off' ? 'chip-link-active' : ''}`}>Off</Link>
+          <Link href={href(path, range, 'previous', segment)} className={`chip-link ${compare === 'previous' ? 'chip-link-active' : ''}`}>Previous window</Link>
         </div>
       </div>
       <div>
         <span className="controls-label">Segment</span>
         <div className="chip-row">
-          <a href={href(path, range, compare, 'all')} className={`chip-link ${segment === 'all' ? 'chip-link-active' : ''}`}>All</a>
-          <a href={href(path, range, compare, 'healthy')} className={`chip-link ${segment === 'healthy' ? 'chip-link-active' : ''}`}>Healthy</a>
-          <a href={href(path, range, compare, 'attention')} className={`chip-link ${segment === 'attention' ? 'chip-link-active' : ''}`}>Needs attention</a>
+          <Link href={href(path, range, compare, 'all')} className={`chip-link ${segment === 'all' ? 'chip-link-active' : ''}`}>All</Link>
+          <Link href={href(path, range, compare, 'healthy')} className={`chip-link ${segment === 'healthy' ? 'chip-link-active' : ''}`}>Healthy</Link>
+          <Link href={href(path, range, compare, 'attention')} className={`chip-link ${segment === 'attention' ? 'chip-link-active' : ''}`}>Needs attention</Link>
         </div>
       </div>
     </div>

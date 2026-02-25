@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const ITEMS = [
   { href: '/', label: 'Overview' },
   { href: '/cron', label: 'Cron' },
@@ -11,9 +13,9 @@ export function TopNav({ current }: { current: string }) {
   return (
     <section className="chip-row" aria-label="Control Center sections">
       {ITEMS.map((item) => (
-        <a key={item.href} href={item.href} className={`chip-link ${current === item.href ? 'chip-link-active' : ''}`}>
+        <Link key={item.href} href={item.href} className={`chip-link ${current === item.href ? 'chip-link-active' : ''}`}>
           {item.label}
-        </a>
+        </Link>
       ))}
     </section>
   );
