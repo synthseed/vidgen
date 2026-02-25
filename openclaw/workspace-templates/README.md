@@ -17,14 +17,16 @@ Role templates included:
 - `render_operator`
 - `publisher`
 - `reliability_guardian`
+- `web_agent`
 
 Each role folder contains:
-- `AGENTS.md` (task contract)
 - `SOUL.md` (values and operating posture)
 - `IDENTITY.md` (agent persona fields)
 - `MEMORY.md` (curated semantic/procedural/episodic memory contract)
+- `TOOLS.md` (role-local toolchain and workflow defaults; present when needed)
 
-Copy these into the corresponding OpenClaw agent workspaces and keep them versioned.
+Repo-wide execution guidance is centralized in the root `AGENTS.md`.
+Copy these templates into the corresponding OpenClaw agent workspaces and keep them versioned.
 
 Current operating model:
 - `main` is global admin/overseer.
