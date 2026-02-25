@@ -102,10 +102,22 @@ Current implementation status (2026-02-25):
 2. Mutating actions are guarded, auditable, and policy-checked.
 3. Incident handoff export includes unresolved items and action history.
 
+## BI Experience Contract (2026-02-25 update)
+- No top-level section should route operators away from Control Center for core workflows.
+- Every top-level page must include all three layers in one cohesive flow:
+  1) high-level KPI strip,
+  2) visualized trend/module evidence,
+  3) low-level drilldown table/list.
+- Every top-level page must expose interactive controls for:
+  - time window (`1h|24h|7d|30d`),
+  - segment filter (`all|healthy|attention`),
+  - compare mode (`off|previous window`).
+- Required integrated top-level pages: `/`, `/cron`, `/agents`, `/connections`, `/optimization`, `/skills`.
+
 ## Mobile Compatibility Baseline (2026-02-25)
-- Dashboard and drilldown pages support responsive breakpoints at <=980px and <=640px.
+- Dashboard and all BI pages support responsive breakpoints at <=980px and <=640px.
 - Navigation + key controls use touch-friendly targets (`>=38px`) and stacked layout on narrow widths.
-- No horizontal overflow on key cards for `/control-center`, `/cron`, `/agents`, `/connections`.
+- No horizontal overflow on key cards/tables for `/control-center`, `/cron`, `/agents`, `/connections`, `/optimization`, `/skills`.
 
 ## Non-Goals (current roadmap horizon)
 - Autonomous destructive remediation without explicit operator approval.

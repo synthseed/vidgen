@@ -255,6 +255,28 @@ Validation run:
 - `node scripts/check_knowledge_base.js` (pass)
 - `node scripts/security_preflight.js` (pass)
 
+## BI Rebuild Sprint Milestones (rescope)
+Guidance sources applied from prior specialist outputs in requester context:
+- `control-center-bi-rescope-pm`
+- `control-center-bi-design-expert`
+- `control-center-bi-tech-plan`
+
+### M1 — Unified in-product navigation
+- Replace isolated drilldown/back-link pattern with persistent top-level nav across all sections.
+- Add first-party pages for optimization and skills to avoid dashboard ejection.
+
+### M2 — BI-style integrated page composition
+- Each page includes KPI strip + evidence chart/module + drilldown table/list.
+- Add interactive controls (range/segment/compare) at page top.
+
+### M3 — API parity for BI pages
+- Add route-level drilldown APIs for cron/agents/connections/optimization/skills.
+- Reuse existing auth + rate-limit controls.
+
+### M4 — Responsive polish + QA
+- Ensure controls collapse cleanly at <=980px and <=640px.
+- Validate build/tests/knowledge/security preflight before promotion.
+
 ## Related Docs
 - `../../product-specs/openclaw-control-center.md`
 - `../../ops/control-center-runtime.md`
