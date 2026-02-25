@@ -11,7 +11,7 @@ type Point = {
 };
 
 export function MetricsChart({ points }: { points: Point[] }) {
-  const rows = points.map((p) => ({ ...p, t: new Date(p.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }));
+  const rows = points.map((p) => ({ ...p, t: new Date(p.ts).toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }));
 
   return (
     <div style={{ width: '100%', height: 280 }}>
@@ -24,6 +24,7 @@ export function MetricsChart({ points }: { points: Point[] }) {
           <Line type="monotone" dataKey="cronFailing" stroke="#f59e0b" strokeWidth={2} dot={false} name="Cron Failing" />
           <Line type="monotone" dataKey="recallFlagged" stroke="#ef4444" strokeWidth={2} dot={false} name="Recall Flagged" />
           <Line type="monotone" dataKey="activeAgents" stroke="#22c55e" strokeWidth={2} dot={false} name="Active Agents" />
+          <Line type="monotone" dataKey="dreamRuns7d" stroke="#60a5fa" strokeWidth={2} dot={false} name="Dream Runs 7d" />
         </LineChart>
       </ResponsiveContainer>
     </div>

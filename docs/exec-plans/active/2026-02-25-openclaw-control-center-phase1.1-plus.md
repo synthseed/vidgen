@@ -201,6 +201,29 @@ Close the known operational gaps after Phase 1 foundation:
 
 This sequencing reduces blast radius and allows rollback by layer.
 
+## Progress Log
+### 2026-02-25 (overnight slice)
+Completed:
+- Added source adapter layer with bounded command execution and typed error taxonomy.
+- Added API hardening primitives (optional bearer auth, per-route token bucket rate limit).
+- Expanded `/api/overview` with fallback flag, freshness, ingest lag KPI, incident timeline, connection diagnostics, and recommendation scaffolding.
+- Expanded `/api/metrics` with `range`/`resolution`, rollup fallback metadata, and freshness signal.
+- Added ingest lock guard, retention prune script, rollup build script, and wired timer service to maintenance chain.
+- Added smoke checks for basePath and metrics endpoint behavior.
+- Added `distDir` env override for build/runtime environments with non-writable `.next` ownership.
+
+Validation run:
+- `CONTROL_CENTER_DIST_DIR=.next-local npm run build` (pass)
+- `npm run ingest:snapshot && npm run ingest:maintenance` (pass)
+- `npm run smoke:basepath && npm run smoke:metrics && npm run smoke:overview` (pass)
+- `node scripts/check_knowledge_base.js` (pass)
+- `node scripts/security_preflight.js` (pass)
+
+Remaining:
+- Dedicated Phase 2 drilldown pages for cron/agent/connection deep dives.
+- Weekly optimization summary generation and richer scorecards.
+- Broader automated tests (route-level unit/integration harness beyond smoke scripts).
+
 ## Related Docs
 - `../../product-specs/openclaw-control-center.md`
 - `../../ops/control-center-runtime.md`

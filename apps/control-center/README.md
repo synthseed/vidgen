@@ -5,11 +5,14 @@ Last Reviewed: 2026-02-25
 
 Internal operations dashboard for OpenClaw runtime visibility.
 
-## Current scope (Phase 0 + Phase 1 foundation)
-- Dark dashboard shell
-- `/api/overview` endpoint
-- `/api/metrics` history endpoint
-- Trend chart fed by local ingest snapshots
+## Current scope (Phase 1.1 + Phase 2/3 scaffolding)
+- Dark dashboard shell with KPI freshness and ingest lag card
+- `/api/overview` endpoint with partial-fallback semantics, source health, incident timeline, and recommendation scaffolding
+- `/api/metrics` history endpoint with `range` + `resolution` query support
+- Trend chart fed by local ingest snapshots and optional rollups (`1h`, `1d`)
+- API hardening:
+  - Optional bearer auth (`CONTROL_CENTER_API_TOKEN`)
+  - In-memory rate limiting (`CONTROL_CENTER_RATE_LIMIT_*`)
 - Aggregated read-only metrics from:
   - `openclaw cron list`
   - `openclaw status --deep`
@@ -31,11 +34,13 @@ When served behind Tailscale path proxy, this app uses base path:
 OPENCLAW_WORKSPACE=/data/repos/vidgen node apps/control-center/scripts/smoke_overview.js
 ```
 
-## Ingest a trend snapshot
+## Ingest + retention + rollups
 ```bash
 cd apps/control-center
 OPENCLAW_WORKSPACE=/data/repos/vidgen npm run ingest:snapshot
+OPENCLAW_WORKSPACE=/data/repos/vidgen npm run ingest:maintenance
 ```
+Maintenance includes retention pruning (`CONTROL_CENTER_RETENTION_DAYS`, default `7`) and rollup generation.
 
 ## Managed runtime (recommended on VPS)
 Install systemd units from repo templates:

@@ -9,7 +9,12 @@
     "start:prod": "next start -p ${PORT:-3210} --hostname ${HOST:-127.0.0.1}",
     "lint": "next lint",
     "smoke:overview": "node scripts/smoke_overview.js",
-    "ingest:snapshot": "node scripts/ingest_snapshot.js"
+    "smoke:metrics": "node scripts/smoke_metrics.js",
+    "smoke:basepath": "bash scripts/smoke_basepath.sh",
+    "ingest:snapshot": "node scripts/ingest_snapshot.js",
+    "ingest:prune": "node scripts/prune_snapshots.js",
+    "ingest:rollup": "node scripts/build_rollups.js",
+    "ingest:maintenance": "npm run ingest:prune && npm run ingest:rollup"
   },
   "dependencies": {
     "next": "16.1.6",

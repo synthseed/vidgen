@@ -9,7 +9,7 @@ Operate the Control Center app on VPS in a stable, repeatable way using systemd 
 ## Service Model
 - App service: `vidgen-control-center.service`
 - Ingest timer: `vidgen-control-center-ingest.timer`
-- Ingest job: `vidgen-control-center-ingest.service`
+- Ingest job: `vidgen-control-center-ingest.service` (runs snapshot + retention prune + rollup build)
 
 Install/refresh units:
 ```bash
@@ -23,6 +23,11 @@ bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_syst
 - `PORT=3210`
 - `CONTROL_CENTER_BASE_PATH=/control-center`
 - `OPENCLAW_WORKSPACE=/docker/openclaw-jnqf/data/repos/vidgen`
+- `CONTROL_CENTER_DIST_DIR=.next` (optional override in constrained environments)
+- `CONTROL_CENTER_RETENTION_DAYS=7`
+- `CONTROL_CENTER_API_TOKEN=<optional private token>`
+- `CONTROL_CENTER_RATE_LIMIT_CAPACITY=60`
+- `CONTROL_CENTER_RATE_LIMIT_REFILL_PER_SEC=1`
 
 ## Health Verification
 ```bash

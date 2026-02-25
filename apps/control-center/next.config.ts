@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   basePath,
   assetPrefix: basePath,
-  trailingSlash: false
+  trailingSlash: false,
+  distDir: process.env.CONTROL_CENTER_DIST_DIR || '.next'
 };
 
 export default nextConfig;

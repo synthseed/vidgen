@@ -10,23 +10,26 @@ function toneFromState(state: string): 'ok' | 'warn' | 'err' {
 }
 
 export default async function Page() {
-  const [data, points] = await Promise.all([getOverview('24h'), readMetricHistory(120)]);
+  const [data, metrics] = await Promise.all([
+    getOverview('24h'),
+    readMetricHistory({ range: '24h', resolution: '5m' })
+  ]);
 
   return (
     <main className="main">
       <div className="header-row">
         <div>
           <h1 style={{ margin: 0 }}>OpenClaw Control Center</h1>
-          <div className="muted">Dark operations dashboard (Phase 0)</div>
+          <div className="muted">Operations dashboard (Phase 1.1+)</div>
         </div>
         <div className="muted">Updated {new Date(data.generatedAt).toLocaleString()}</div>
       </div>
 
       <section className="grid">
-        <KpiCard label="Overall Health" value={data.kpis.overallHealth} tone={toneFromState(data.kpis.overallHealth)} />
+        <KpiCard label="Overall Health" value={data.kpis.overallHealth} tone={toneFromState(data.kpis.overallHealth)} freshness={data.freshness} />
         <KpiCard label="Cron Jobs" value={data.kpis.cronJobs} tone={toneFromState(data.modules.cron.state)} />
         <KpiCard label="Cron Failing" value={data.kpis.cronFailing} tone={data.kpis.cronFailing > 0 ? 'warn' : 'ok'} />
-        <KpiCard label="Recall Flagged" value={data.kpis.recallFlagged} tone={data.kpis.recallFlagged > 0 ? 'warn' : 'ok'} />
+        <KpiCard label="Ingest Lag (min)" value={data.kpis.ingestLagMinutes ?? 'n/a'} tone={(data.kpis.ingestLagMinutes || 0) > 30 ? 'warn' : 'ok'} />
       </section>
 
       <section className="grid" style={{ marginTop: 14 }}>
@@ -46,7 +49,7 @@ export default async function Page() {
             ) : (
               data.modules.agentUsage.topAgents.map((agent) => (
                 <li key={agent.id}>
-                  <strong>{agent.id}</strong> — {agent.sessions} session(s)
+                  <strong>{agent.id}</strong> — {agent.sessions} session(s), reliability {(agent.reliability * 100).toFixed(0)}%
                 </li>
               ))
             )}
@@ -54,8 +57,39 @@ export default async function Page() {
         </div>
 
         <div className="card span-12">
-          <h3 style={{ marginTop: 0 }}>Operational Trend (Phase 1)</h3>
-          {points.length === 0 ? <div className="muted">No ingested history yet. Run ingest snapshot script to populate.</div> : <MetricsChart points={points} />}
+          <h3 style={{ marginTop: 0 }}>Operational Trend</h3>
+          {metrics.points.length === 0 ? <div className="muted">No ingested history yet.</div> : <MetricsChart points={metrics.points} />}
+        </div>
+
+        <div className="card span-6">
+          <h3 style={{ marginTop: 0 }}>Incident Timeline</h3>
+          <ul className="list">
+            {data.incidentTimeline.length === 0 ? (
+              <li className="muted">No active incidents detected.</li>
+            ) : (
+              data.incidentTimeline.map((incident) => (
+                <li key={`${incident.ts}:${incident.type}`}>
+                  <strong>{incident.severity}</strong> [{incident.source}] {incident.type} — {incident.message}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+
+        <div className="card span-6">
+          <h3 style={{ marginTop: 0 }}>Optimization Insights (scaffold)</h3>
+          <ul className="list">
+            {data.recommendations.length === 0 ? (
+              <li className="muted">No recommendations yet.</li>
+            ) : (
+              data.recommendations.map((rec) => (
+                <li key={rec.id}>
+                  <strong>{rec.title}</strong> ({rec.impact}, conf {Math.round(rec.confidence * 100)}%)
+                  <div className="muted">{rec.evidence.join(' • ')}</div>
+                </li>
+              ))
+            )}
+          </ul>
         </div>
 
         <div className="card span-12">
@@ -64,6 +98,7 @@ export default async function Page() {
             {data.sourceHealth.map((source) => (
               <li key={source.source}>
                 <strong>{source.source}</strong>: {source.state}
+                {source.freshness ? <span className="muted"> ({source.freshness})</span> : null}
                 {source.note ? <span className="muted"> — {source.note.slice(0, 180)}</span> : null}
               </li>
             ))}
