@@ -36,7 +36,7 @@ Deliver Phase 0 scaffold: a runnable Next.js + TypeScript app with dark dashboar
 - Scaffolded `apps/control-center` with Next.js + TypeScript dark dashboard shell.
 - Implemented read-only `/api/overview` endpoint with partial-source degradation handling.
 - Added Phase 0 run instructions and smoke script.
-- Validation completed: `apps/control-center/scripts/smoke_overview.js` and `scripts/check_knowledge_base.js` both pass.
+- Validation completed: `apps/control-center/scripts/smoke_overview.js`, `npm run build` (in `apps/control-center`), and `scripts/check_knowledge_base.js` all pass.
 
 ## Related Docs
 - `../../product-specs/openclaw-control-center.md`
