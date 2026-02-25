@@ -8,10 +8,10 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 ## Contents
 - `openclaw.json`: repo-managed production topology (includes default admin agent `main`).
 - `workspace-templates/`: per-agent identity templates:
-  - `AGENTS.md`
   - `SOUL.md`
   - `IDENTITY.md`
   - `MEMORY.md`
+  - `TOOLS.md` (when role-specific toolchain defaults are needed)
 
 ## Runtime Ownership Boundary
 1. Keep repo ownership limited to `openclaw/openclaw.json` and role identity templates.
@@ -22,15 +22,16 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 
 ## Team Pattern (Current)
 - Global overseer: `main` (admin default, continuity + security + safe remediation).
-- Product+engineering lane: `product_manager` -> `engineering_lead` -> `implementation_engineer` -> `qa_guardian` -> `release_manager`.
+- Product+engineering lane: `product_manager` -> `engineering_lead` -> `implementation_engineer`/`web_agent` -> `qa_guardian` -> `release_manager`.
+- Web app specialist lane: `web_agent` (Node.js/React/TypeScript primary).
 - Video lane lead: `director`.
 - Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
 - Cross-team safety lane: `reliability_guardian`.
 
-## Do Agents Need Their Own AGENTS.md?
-- Not every possible agent must have one.
-- Every active role that is expected to make decisions or perform distinct work should have its own `AGENTS.md`.
-- In practice for this repo, each active role also keeps `SOUL.md`, `IDENTITY.md`, and `MEMORY.md` to preserve stable behavior.
+## Agent Template Baseline
+- Repo-level execution policy is centralized in root `AGENTS.md`.
+- Active role templates should include `SOUL.md`, `IDENTITY.md`, and `MEMORY.md`.
+- Add `TOOLS.md` for roles that benefit from explicit stack/tooling defaults.
 
 ## Live Validation Commands
 Run in the live OpenClaw container/host:

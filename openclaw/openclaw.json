@@ -10,7 +10,8 @@
             "director",
             "product_manager",
             "release_manager",
-            "reliability_guardian"
+            "reliability_guardian",
+            "web_agent"
           ]
         }
       },
@@ -44,12 +45,22 @@
         "subagents": {
           "allowAgents": [
             "implementation_engineer",
-            "qa_guardian"
+            "qa_guardian",
+            "web_agent"
           ]
         }
       },
       {
         "id": "implementation_engineer"
+      },
+      {
+        "id": "web_agent",
+        "model": "openai-codex/gpt-5.3-codex",
+        "subagents": {
+          "allowAgents": [
+            "qa_guardian"
+          ]
+        }
       },
       {
         "id": "qa_guardian"
