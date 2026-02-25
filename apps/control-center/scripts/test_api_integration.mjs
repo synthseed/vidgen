@@ -23,13 +23,16 @@ async function waitFor(url, timeoutMs = 60000) {
 }
 
 async function startServer(workspace) {
+  const distDir = path.join(APP_DIR, '.next-local-test');
+  await mkdir(distDir, { recursive: true });
+
   const child = spawn('npm', ['run', 'dev', '--', '-p', PORT], {
     cwd: APP_DIR,
     stdio: 'ignore',
     env: {
       ...process.env,
       CONTROL_CENTER_BASE_PATH: '/control-center',
-      CONTROL_CENTER_DIST_DIR: '.next-local',
+      CONTROL_CENTER_DIST_DIR: distDir,
       CONTROL_CENTER_API_TOKEN: 'test-token',
       CONTROL_CENTER_RATE_LIMIT_CAPACITY: '1',
       CONTROL_CENTER_RATE_LIMIT_REFILL_PER_SEC: '0.1',
