@@ -1,0 +1,28 @@
+[Unit]
+Description=Vidgen Control Center (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=clawuser
+Group=clawuser
+WorkingDirectory=/docker/openclaw-jnqf/data/repos/vidgen/apps/control-center
+EnvironmentFile=-/etc/default/vidgen-control-center
+ExecStartPre=/usr/bin/node /docker/openclaw-jnqf/data/repos/vidgen/apps/control-center/scripts/prestart_port_guard.js
+ExecStart=/usr/bin/env npm run start:prod
+Restart=always
+RestartSec=3
+TimeoutStartSec=60
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/docker/openclaw-jnqf/data/repos/vidgen/apps/control-center/.next /docker/openclaw-jnqf/data/repos/vidgen/apps/control-center/data
+UMask=0027
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

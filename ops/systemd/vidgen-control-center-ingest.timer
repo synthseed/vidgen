@@ -1,0 +1,11 @@
+[Unit]
+Description=Run control center ingest snapshot every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=vidgen-control-center-ingest.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

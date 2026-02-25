@@ -6,6 +6,7 @@
     "dev": "next dev -p 3210",
     "build": "next build",
     "start": "next start -p 3210",
+    "start:prod": "next start -p ${PORT:-3210} --hostname ${HOST:-127.0.0.1}",
     "lint": "next lint",
     "smoke:overview": "node scripts/smoke_overview.js",
     "ingest:snapshot": "node scripts/ingest_snapshot.js"

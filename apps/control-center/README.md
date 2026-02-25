@@ -37,6 +37,18 @@ cd apps/control-center
 OPENCLAW_WORKSPACE=/data/repos/vidgen npm run ingest:snapshot
 ```
 
+## Managed runtime (recommended on VPS)
+Install systemd units from repo templates:
+```bash
+bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_systemd.sh
+```
+
+Health checks:
+```bash
+curl -f http://127.0.0.1:3210/control-center
+curl -f http://127.0.0.1:3210/control-center/api/healthz
+```
+
 ## Notes
 - Existing legacy dashboard files are untouched.
 - Current implementation remains read-only (no control actions).

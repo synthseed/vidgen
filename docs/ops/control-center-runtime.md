@@ -1,0 +1,57 @@
+# Control Center Runtime Runbook
+Owner: platform
+Status: active
+Last Reviewed: 2026-02-25
+
+## Purpose
+Operate the Control Center app on VPS in a stable, repeatable way using systemd and path-based Tailscale serving.
+
+## Service Model
+- App service: `vidgen-control-center.service`
+- Ingest timer: `vidgen-control-center-ingest.timer`
+- Ingest job: `vidgen-control-center-ingest.service`
+
+Install/refresh units:
+```bash
+bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_systemd.sh
+```
+
+## Required Environment
+`/etc/default/vidgen-control-center`:
+- `NODE_ENV=production`
+- `HOST=127.0.0.1`
+- `PORT=3210`
+- `CONTROL_CENTER_BASE_PATH=/control-center`
+- `OPENCLAW_WORKSPACE=/docker/openclaw-jnqf/data/repos/vidgen`
+
+## Health Verification
+```bash
+systemctl status vidgen-control-center --no-pager
+systemctl status vidgen-control-center-ingest.timer --no-pager
+curl -f http://127.0.0.1:3210/control-center
+curl -f http://127.0.0.1:3210/control-center/api/healthz
+```
+
+## Tailscale Route
+Keep gateway and control center route updates targeted (no global resets):
+```bash
+tailscale serve --bg https /control-center http://127.0.0.1:3210/control-center
+```
+
+## Common Failures
+### EADDRINUSE on 3210
+- Stop stale process or restart service only:
+```bash
+systemctl restart vidgen-control-center
+```
+
+### 404 on `/control-center`
+- Ensure basePath and proxy path are aligned (`/control-center` -> `/control-center`).
+
+### 502 from tailnet URL
+- Confirm app upstream is live locally before proxy debugging.
+
+## Related Docs
+- `../product-specs/openclaw-control-center.md`
+- `../../apps/control-center/README.md`
+- `../RELIABILITY.md`
