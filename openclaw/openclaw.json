@@ -14,7 +14,8 @@
             "web_agent",
             "container_expert",
             "webhooks_agent",
-            "realtime_data_agent"
+            "realtime_data_agent",
+            "css_architecture_agent"
           ]
         }
       },
@@ -115,6 +116,10 @@
       },
       {
         "id": "realtime_data_agent",
+        "model": "openai-codex/gpt-5.3-codex"
+      },
+      {
+        "id": "css_architecture_agent",
         "model": "openai-codex/gpt-5.3-codex"
       }
     ]
