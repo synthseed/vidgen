@@ -21,7 +21,10 @@ cd apps/control-center
 npm install
 npm run dev
 ```
-Open http://localhost:3210
+Open http://localhost:3210 (local dev)
+
+When served behind Tailscale path proxy, this app uses base path:
+- `https://<tailnet-host>/control-center`
 
 ## Smoke check
 ```bash

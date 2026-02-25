@@ -1,10 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { execFile } from 'node:child_process';
+import { exec, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const ROOT = process.env.OPENCLAW_WORKSPACE || '/data/repos/vidgen';
+const execAsync = promisify(exec);
+const ROOT = process.env.OPENCLAW_WORKSPACE || path.resolve(process.cwd(), '../..');
 
 export type SourceState = 'ok' | 'degraded' | 'error';
 
@@ -29,8 +30,15 @@ export type OverviewPayload = {
 };
 
 async function runOpenclaw(args: string[]): Promise<string> {
-  const { stdout } = await execFileAsync('openclaw', args, { timeout: 15000 });
-  return stdout;
+  try {
+    const { stdout } = await execFileAsync('openclaw', args, { timeout: 15000 });
+    return stdout;
+  } catch {
+    // Host may not have openclaw CLI directly; fallback to docker compose exec.
+    const cmd = `cd /docker/openclaw-jnqf && docker compose exec -T openclaw openclaw ${args.map((a) => JSON.stringify(a)).join(' ')}`;
+    const { stdout } = await execAsync(cmd, { timeout: 20000 });
+    return stdout;
+  }
 }
 
 async function readDashboardJson() {

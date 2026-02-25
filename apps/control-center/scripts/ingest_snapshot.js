@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const root = process.env.OPENCLAW_WORKSPACE || '/data/repos/vidgen';
+const root = process.env.OPENCLAW_WORKSPACE || require('node:path').resolve(process.cwd(), '../..');
 const outDir = path.join(root, 'apps/control-center/data/ingest');
 const outFile = path.join(outDir, 'snapshots.jsonl');
 const memFile = path.join(root, 'memory/hardened/dashboard.json');
@@ -13,7 +13,12 @@ function safeOpenclaw(args) {
   try {
     return execFileSync('openclaw', args, { encoding: 'utf8', timeout: 15000 });
   } catch {
-    return '';
+    try {
+      const cmd = `cd /docker/openclaw-jnqf && docker compose exec -T openclaw openclaw ${args.map((a) => JSON.stringify(a)).join(' ')}`;
+      return require('node:child_process').execSync(cmd, { encoding: 'utf8', timeout: 20000 });
+    } catch {
+      return '';
+    }
   }
 }
 
