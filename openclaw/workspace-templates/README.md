@@ -22,6 +22,7 @@ Role templates included:
 - `webhooks_agent`
 - `realtime_data_agent`
 - `css_architecture_agent`
+- `testing_frontend_agent`
 
 Each role folder contains:
 - `SOUL.md` (values and operating posture)
