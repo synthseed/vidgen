@@ -11,7 +11,8 @@
             "product_manager",
             "release_manager",
             "reliability_guardian",
-            "web_agent"
+            "web_agent",
+            "container_expert"
           ]
         }
       },
@@ -95,7 +96,16 @@
         "id": "publisher"
       },
       {
-        "id": "reliability_guardian"
+        "id": "reliability_guardian",
+        "subagents": {
+          "allowAgents": [
+            "container_expert"
+          ]
+        }
+      },
+      {
+        "id": "container_expert",
+        "model": "openai-codex/gpt-5.3-codex"
       }
     ]
   }

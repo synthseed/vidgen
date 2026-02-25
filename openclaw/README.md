@@ -26,7 +26,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 - Web app specialist lane: `web_agent` (Node.js/React/TypeScript primary).
 - Video lane lead: `director`.
 - Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
-- Cross-team safety lane: `reliability_guardian`.
+- Cross-team safety lane: `reliability_guardian` + `container_expert` (VPS/Docker/Tailscale specialist).
 
 ## Agent Template Baseline
 - Repo-level execution policy is centralized in root `AGENTS.md`.
@@ -94,7 +94,7 @@ The runner:
 1. Pulls latest `dev` commit.
 2. Runs unified autonomy preflight (`scripts/autonomy_preflight.js`) covering topology, workflow integrity, docs, memory hygiene, security, and orchestrator dry-run.
 3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
-4. Syncs per-agent templates (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
+4. Syncs per-agent templates (`SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
 5. Restarts OpenClaw and verifies health.
 6. Restores previous runtime config backup automatically if runtime verification fails.
 7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.

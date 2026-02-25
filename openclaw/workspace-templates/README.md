@@ -18,6 +18,7 @@ Role templates included:
 - `publisher`
 - `reliability_guardian`
 - `web_agent`
+- `container_expert`
 
 Each role folder contains:
 - `SOUL.md` (values and operating posture)
