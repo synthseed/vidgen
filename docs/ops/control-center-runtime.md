@@ -28,6 +28,7 @@ bash /docker/openclaw-jnqf/data/repos/vidgen/scripts/install_control_center_syst
 - `CONTROL_CENTER_API_TOKEN=<optional private token>`
 - `CONTROL_CENTER_RATE_LIMIT_CAPACITY=60`
 - `CONTROL_CENTER_RATE_LIMIT_REFILL_PER_SEC=1`
+- `CONTROL_CENTER_RATE_LIMIT_WINDOW_MS=60000`
 
 ## Health Verification
 ```bash
@@ -42,7 +43,7 @@ curl -f http://127.0.0.1:3210/control-center/api/weekly-summary
 ## Runtime Hardening Verification
 ```bash
 # service listens only on loopback
-ss -ltnp | rg ':3210'
+ss -ltnp | grep ':3210'
 
 # app and ingest are healthy
 systemctl is-active vidgen-control-center.service
@@ -51,6 +52,11 @@ systemctl is-active vidgen-control-center-ingest.timer
 # auth/rate-limit/fallback integration checks
 cd /docker/openclaw-jnqf/data/repos/vidgen/apps/control-center
 npm run test:api-integration
+npm run check:tailnet-hardening
+
+# visual snapshot checks for key pages
+UPDATE_VISUAL_BASELINES=1 npm run check:visual   # first run only
+npm run check:visual                              # regression check
 ```
 
 ## Tailscale Route
@@ -58,6 +64,9 @@ Keep gateway and control center route updates targeted (no global resets):
 ```bash
 tailscale serve --bg https /control-center http://127.0.0.1:3210/control-center
 ```
+Exact access path:
+- `https://<tailnet-host>/control-center`
+- drilldowns: `https://<tailnet-host>/control-center/cron`, `/agents`, `/connections`
 
 ## Common Failures
 ### EADDRINUSE on 3210

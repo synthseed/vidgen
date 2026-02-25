@@ -42,8 +42,8 @@ Current implementation status (2026-02-25):
 3. Weekly optimization summary with prioritized actions and expected impact.
 
 Current implementation status (2026-02-25):
-- Recommendation scaffolding is live with impact/confidence/evidence in `/api/overview`.
-- Agent scorecard seed signal is available via per-agent reliability in top-agent diagnostics.
+- Optimization engine v2 is live in `/api/overview` with impact/confidence-prioritized recommendations and evidence links/signals.
+- Agent scorecards are live in `/api/overview` and `/api/scorecards` with reliability, latency proxy, retry pressure, and trend deltas.
 - Weekly summary generation is live at `/api/weekly-summary` and persisted to `apps/control-center/data/ingest/weekly-summary/latest.json`.
 
 ### Phase 4 — Skill Opportunity Detection (v1.2 target)
@@ -51,10 +51,20 @@ Current implementation status (2026-02-25):
 2. Skill-candidate suggestions with confidence, frequency, and expected payoff.
 3. Human-approved workflow to promote suggestions into real skills.
 
+Current implementation status (2026-02-25):
+- Recurring pattern detector is live in `/api/overview` and `/api/skill-opportunities`.
+- Candidate cards include confidence, frequency, and payoff estimate for review.
+- Suggestions remain read-only and require human approval before any skill creation workflow.
+
 ### Phase 5 — Guided Operations Workflows (v1.3 target)
 1. In-UI runbooks for cron failures, memory anomalies, and connection degradation.
 2. Action guardrails (confirmations, policy checks, auditable events).
 3. Exportable incident handoff summary.
+
+Current implementation status (2026-02-25):
+- Guided workflow skeletons are live in `/api/overview` and `/api/workflows` for cron-failure triage and connection-recovery.
+- Each workflow includes auditable run steps/evidence slots.
+- Flows are non-mutating scaffolds (execution guardrails remain next increment).
 
 ## Data Sources (MVP)
 - `openclaw status --deep`
@@ -91,6 +101,11 @@ Current implementation status (2026-02-25):
 1. Guided runbooks can be executed end-to-end from UI with progress state.
 2. Mutating actions are guarded, auditable, and policy-checked.
 3. Incident handoff export includes unresolved items and action history.
+
+## Mobile Compatibility Baseline (2026-02-25)
+- Dashboard and drilldown pages support responsive breakpoints at <=980px and <=640px.
+- Navigation + key controls use touch-friendly targets (`>=38px`) and stacked layout on narrow widths.
+- No horizontal overflow on key cards for `/control-center`, `/cron`, `/agents`, `/connections`.
 
 ## Non-Goals (current roadmap horizon)
 - Autonomous destructive remediation without explicit operator approval.

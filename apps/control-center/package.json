@@ -15,7 +15,9 @@
     "ingest:prune": "node scripts/prune_snapshots.js",
     "ingest:rollup": "node scripts/build_rollups.js",
     "ingest:maintenance": "npm run ingest:prune && npm run ingest:rollup",
-    "test:api-integration": "node scripts/test_api_integration.mjs"
+    "test:api-integration": "node scripts/test_api_integration.mjs",
+    "check:tailnet-hardening": "node scripts/check_tailnet_hardening.js",
+    "check:visual": "node scripts/check_visual_snapshots.mjs"
   },
   "dependencies": {
     "next": "16.1.6",

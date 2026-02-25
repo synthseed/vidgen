@@ -1,7 +1,11 @@
 import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { freshnessFromTs, readJsonFile, runOpenclaw, workspacePath } from '@/lib/source-adapters';
 import type { OverviewPayload, SourceHealth } from '@/lib/types';
+import { buildOptimizationRecommendations } from '@/lib/optimization';
+import { readMetricHistory } from '@/lib/metrics';
+import { buildAgentScorecards } from '@/lib/scorecards';
+import { detectSkillOpportunities } from '@/lib/skill-opportunities';
+import { getWorkflowSkeletons } from '@/lib/workflows';
 
 function parseCronCounts(text: string): { total: number; failing: number } {
   const lines = text.split(/\r?\n/).filter(Boolean);
@@ -18,7 +22,7 @@ function parseAgentUsage(statusDeep: string): Array<{ id: string; sessions: numb
     if (!m) continue;
     const id = m[1];
     counts.set(id, (counts.get(id) || 0) + 1);
-    if (/error|fail|timeout/i.test(line)) errors.set(id, (errors.get(id) || 0) + 1);
+    if (/error|fail|timeout|retry/i.test(line)) errors.set(id, (errors.get(id) || 0) + 1);
   }
 
   return [...counts.entries()]
@@ -73,13 +77,7 @@ export async function getOverview(range = '24h'): Promise<OverviewPayload> {
   } else {
     const code = memResult.error?.code;
     sourceHealth.push({ source: 'memory/hardened/dashboard.json', state: sourceStateFromError(code), note: memResult.error?.message });
-    incidents.push({
-      ts: memResult.at,
-      severity: 'critical',
-      source: 'memory/hardened/dashboard.json',
-      type: code || 'io_error',
-      message: memResult.error?.message || 'memory source unavailable'
-    });
+    incidents.push({ ts: memResult.at, severity: 'critical', source: 'memory/hardened/dashboard.json', type: code || 'io_error', message: memResult.error?.message || 'memory source unavailable' });
   }
 
   const cronResult = await runOpenclaw(['cron', 'list']);
@@ -97,9 +95,11 @@ export async function getOverview(range = '24h'): Promise<OverviewPayload> {
   }
 
   const statusResult = await runOpenclaw(['status', '--deep']);
+  let retrySignals = 0;
   if (statusResult.ok && statusResult.value) {
     topAgents = parseAgentUsage(statusResult.value);
     pairingHints = (statusResult.value.match(/pairing required/gi) || []).length;
+    retrySignals = (statusResult.value.match(/retry|reconnect|backoff/gi) || []).length;
     sourceHealth.push({ source: 'openclaw status --deep', state: pairingHints > 0 ? 'degraded' : 'ok', lastSuccessfulAt: statusResult.at, freshness: 'live' });
     if (pairingHints > 0) {
       incidents.push({ ts: statusResult.at, severity: 'warn', source: 'openclaw status --deep', type: 'pairing_required', message: `${pairingHints} pairing-required signal(s) observed` });
@@ -119,34 +119,24 @@ export async function getOverview(range = '24h'): Promise<OverviewPayload> {
   const freshness = freshnessFromTs(snapshotTs);
   const ingestLagMinutes = snapshotTs ? Math.max(0, Math.round((Date.now() - new Date(snapshotTs).getTime()) / 60000)) : null;
 
-  const recommendations: OverviewPayload['recommendations'] = [];
-  if (cronFailing > 0) {
-    recommendations.push({
-      id: 'cron-failures-hotspot',
-      title: 'Prioritize failing cron jobs and add retry policy review',
-      impact: 'high',
-      evidence: [`${cronFailing} failing/stopped cron entries`, 'Source: openclaw cron list'],
-      confidence: 0.86
-    });
-  }
-  if (pairingHints > 0) {
-    recommendations.push({
-      id: 'connection-pairing-loop',
-      title: 'Resolve pairing-required session loops for connection stability',
-      impact: 'medium',
-      evidence: [`${pairingHints} pairing-required signals`, 'Source: openclaw status --deep'],
-      confidence: 0.78
-    });
-  }
-  if (memoryFlagged > 0) {
-    recommendations.push({
-      id: 'memory-flagged-observations',
-      title: 'Address hardened-memory flagged signals before drift grows',
-      impact: 'medium',
-      evidence: [`${memoryFlagged} flagged observations`, `Recommendation: ${memoryRecommendation}`],
-      confidence: 0.73
-    });
-  }
+  const metrics = await readMetricHistory({ range: '7d', resolution: '1h' });
+  const timeoutIncidents = incidents.filter((i) => /timeout|exec_error/.test(i.type)).length;
+
+  const recommendations = buildOptimizationRecommendations({
+    cronFailing,
+    pairingHints,
+    memoryFlagged,
+    retryPressure: retrySignals + timeoutIncidents
+  });
+
+  const scorecards = buildAgentScorecards({
+    topAgents,
+    points: metrics.points,
+    timeoutIncidents,
+    retrySignals
+  });
+
+  const skillOpportunities = detectSkillOpportunities({ incidents, recommendations });
 
   return {
     generatedAt: new Date().toISOString(),
@@ -194,6 +184,9 @@ export async function getOverview(range = '24h'): Promise<OverviewPayload> {
     },
     incidentTimeline: incidents.sort((a, b) => a.ts.localeCompare(b.ts)).slice(-20),
     recommendations,
+    scorecards,
+    skillOpportunities,
+    workflows: getWorkflowSkeletons(),
     sourceHealth: sourceHealth.map((source) => ({ ...source, freshness: source.freshness || freshnessFromTs(source.lastSuccessfulAt || null) }))
   };
 }

@@ -9,6 +9,41 @@ export type SourceHealth = {
   freshness?: FreshnessState;
 };
 
+export type AgentScorecard = {
+  id: string;
+  reliability: number;
+  latencyScore: number;
+  retryPressure: number;
+  trendDelta: {
+    reliability: number;
+    latency: number;
+    retries: number;
+  };
+};
+
+export type SkillOpportunity = {
+  id: string;
+  title: string;
+  pattern: string;
+  frequency: number;
+  payoffEstimate: 'low' | 'medium' | 'high';
+  confidence: number;
+};
+
+export type WorkflowStep = {
+  step: number;
+  title: string;
+  detail: string;
+  evidence: string;
+};
+
+export type WorkflowSkeleton = {
+  id: 'cron-failure-triage' | 'connection-recovery';
+  name: string;
+  auditable: boolean;
+  steps: WorkflowStep[];
+};
+
 export type OverviewPayload = {
   generatedAt: string;
   range: string;
@@ -56,8 +91,12 @@ export type OverviewPayload = {
     id: string;
     title: string;
     impact: 'low' | 'medium' | 'high';
-    evidence: string[];
     confidence: number;
+    priorityScore: number;
+    evidence: Array<{ signal: string; href?: string }>;
   }>;
+  scorecards: AgentScorecard[];
+  skillOpportunities: SkillOpportunity[];
+  workflows: WorkflowSkeleton[];
   sourceHealth: SourceHealth[];
 };

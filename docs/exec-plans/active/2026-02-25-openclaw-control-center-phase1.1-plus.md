@@ -223,6 +223,24 @@ Remaining:
 - Promote drilldown UX from phase-2 baseline to richer per-job/per-agent tables as data contracts mature.
 - Expand scorecards with explicit latency SLIs from structured runtime logs.
 
+### 2026-02-25 (phase3/4/mobile/hardening completion slice)
+Completed:
+- Implemented Optimization Engine v2 prioritization (`impact * confidence`) and evidence links/signals in `lib/optimization.ts`, surfaced through `/api/overview`.
+- Added Agent performance scorecards (reliability, latency proxy, retry pressure, trend deltas) in overview plus dedicated `/api/scorecards`.
+- Added Skill Opportunity detector (Phase 4 start) with recurring-pattern candidate cards and payoff estimates (`/api/skill-opportunities`).
+- Added Guided workflow skeletons for cron-failure triage + connection recovery with auditable run steps (`/api/workflows`).
+- Upgraded mobile responsiveness/touch ergonomics for dashboard navigation/cards and validated narrow layout behavior in CSS.
+- Added operational hardening checks: `check:tailnet-hardening` and `check:visual` snapshot regression checks for `/control-center`, `/cron`, `/agents`, `/connections`.
+- Updated product spec + runtime docs for new endpoints, hardening controls, and exact tailnet access mapping.
+
+Validation run:
+- `CONTROL_CENTER_DIST_DIR=.next-local npm run build` (pass)
+- `npm run test:api-integration` (pass)
+- `npm run check:tailnet-hardening` (pass via env example + defaults)
+- `UPDATE_VISUAL_BASELINES=1 npm run check:visual && npm run check:visual` (pass)
+- `node scripts/check_knowledge_base.js` (pass)
+- `node scripts/security_preflight.js` (pass)
+
 ### 2026-02-25 (overnight continuation)
 Completed:
 - Added Phase 2 deep-dive pages (`/cron`, `/agents`, `/connections`) plus drilldown API routes for cron/agent/connection diagnostics.
