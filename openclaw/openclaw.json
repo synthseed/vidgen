@@ -12,7 +12,8 @@
             "release_manager",
             "reliability_guardian",
             "web_agent",
-            "container_expert"
+            "container_expert",
+            "webhooks_agent"
           ]
         }
       },
@@ -105,6 +106,10 @@
       },
       {
         "id": "container_expert",
+        "model": "openai-codex/gpt-5.3-codex"
+      },
+      {
+        "id": "webhooks_agent",
         "model": "openai-codex/gpt-5.3-codex"
       }
     ]

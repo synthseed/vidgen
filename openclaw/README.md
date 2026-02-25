@@ -24,6 +24,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 - Global overseer: `main` (admin default, continuity + security + safe remediation).
 - Product+engineering lane: `product_manager` -> `engineering_lead` -> `implementation_engineer`/`web_agent` -> `qa_guardian` -> `release_manager`.
 - Web app specialist lane: `web_agent` (Node.js/React/TypeScript primary).
+- Integration specialist lane: `webhooks_agent` (webhook sending/receiving reliability + security).
 - Video lane lead: `director`.
 - Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
 - Cross-team safety lane: `reliability_guardian` + `container_expert` (VPS/Docker/Tailscale specialist).
