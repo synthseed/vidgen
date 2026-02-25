@@ -2,6 +2,7 @@ import { getOverview } from '@/lib/overview';
 import { readMetricHistory } from '@/lib/metrics';
 import { KpiCard } from '@/components/kpi-card';
 import { MetricsChart } from '@/components/metrics-chart';
+import { readWeeklySummaryArtifact } from '@/lib/weekly-summary';
 
 function toneFromState(state: string): 'ok' | 'warn' | 'err' {
   if (state === 'ok' || state === 'healthy') return 'ok';
@@ -10,9 +11,10 @@ function toneFromState(state: string): 'ok' | 'warn' | 'err' {
 }
 
 export default async function Page() {
-  const [data, metrics] = await Promise.all([
+  const [data, metrics, weeklySummary] = await Promise.all([
     getOverview('24h'),
-    readMetricHistory({ range: '24h', resolution: '5m' })
+    readMetricHistory({ range: '24h', resolution: '5m' }),
+    readWeeklySummaryArtifact()
   ]);
 
   return (
@@ -30,6 +32,11 @@ export default async function Page() {
         <KpiCard label="Cron Jobs" value={data.kpis.cronJobs} tone={toneFromState(data.modules.cron.state)} />
         <KpiCard label="Cron Failing" value={data.kpis.cronFailing} tone={data.kpis.cronFailing > 0 ? 'warn' : 'ok'} />
         <KpiCard label="Ingest Lag (min)" value={data.kpis.ingestLagMinutes ?? 'n/a'} tone={(data.kpis.ingestLagMinutes || 0) > 30 ? 'warn' : 'ok'} />
+      </section>
+
+      <section className="card" style={{ marginTop: 14 }}>
+        <strong>Phase 2 Drilldowns:</strong>{' '}
+        <a href="./cron">Cron</a> · <a href="./agents">Agents</a> · <a href="./connections">Connections</a>
       </section>
 
       <section className="grid" style={{ marginTop: 14 }}>
@@ -77,7 +84,7 @@ export default async function Page() {
         </div>
 
         <div className="card span-6">
-          <h3 style={{ marginTop: 0 }}>Optimization Insights (scaffold)</h3>
+          <h3 style={{ marginTop: 0 }}>Optimization Insights</h3>
           <ul className="list">
             {data.recommendations.length === 0 ? (
               <li className="muted">No recommendations yet.</li>
@@ -90,6 +97,15 @@ export default async function Page() {
               ))
             )}
           </ul>
+          <div className="muted" style={{ marginTop: 8 }}>
+            Weekly summary API: <code>/api/weekly-summary</code>{' '}
+            <a href="./api/weekly-summary?refresh=1">(refresh now)</a>
+          </div>
+          {weeklySummary ? (
+            <div className="muted" style={{ marginTop: 6 }}>
+              Latest summary: {new Date(weeklySummary.generatedAt).toLocaleString()} ({weeklySummary.prioritizedActions?.length || 0} prioritized actions)
+            </div>
+          ) : null}
         </div>
 
         <div className="card span-12">
