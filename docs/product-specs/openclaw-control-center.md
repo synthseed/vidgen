@@ -31,6 +31,7 @@ Define behavior contract for a private internal web app that acts as a one-stop 
 5. Source freshness badges (`live`, `stale`, `outdated`) at global and module levels.
 
 Current implementation status (2026-02-25):
+- Phase 2 drilldown pages are live at `/cron`, `/agents`, `/connections` with matching drilldown APIs.
 - Incident timeline scaffold is live in `/api/overview` and dashboard surface.
 - Connection diagnostics include pairing-required signal detection.
 - Freshness is surfaced globally plus per-source health rows.
@@ -43,7 +44,7 @@ Current implementation status (2026-02-25):
 Current implementation status (2026-02-25):
 - Recommendation scaffolding is live with impact/confidence/evidence in `/api/overview`.
 - Agent scorecard seed signal is available via per-agent reliability in top-agent diagnostics.
-- Weekly summary generation remains pending.
+- Weekly summary generation is live at `/api/weekly-summary` and persisted to `apps/control-center/data/ingest/weekly-summary/latest.json`.
 
 ### Phase 4 — Skill Opportunity Detection (v1.2 target)
 1. Detection of recurring manual execution patterns and repeated command sequences.

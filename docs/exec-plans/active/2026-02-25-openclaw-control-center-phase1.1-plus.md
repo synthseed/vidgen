@@ -220,9 +220,22 @@ Validation run:
 - `node scripts/security_preflight.js` (pass)
 
 Remaining:
-- Dedicated Phase 2 drilldown pages for cron/agent/connection deep dives.
-- Weekly optimization summary generation and richer scorecards.
-- Broader automated tests (route-level unit/integration harness beyond smoke scripts).
+- Promote drilldown UX from phase-2 baseline to richer per-job/per-agent tables as data contracts mature.
+- Expand scorecards with explicit latency SLIs from structured runtime logs.
+
+### 2026-02-25 (overnight continuation)
+Completed:
+- Added Phase 2 deep-dive pages (`/cron`, `/agents`, `/connections`) plus drilldown API routes for cron/agent/connection diagnostics.
+- Added Phase 3 weekly optimization summary generator (`/api/weekly-summary`) with persisted artifact at `apps/control-center/data/ingest/weekly-summary/latest.json`.
+- Added integration test harness `scripts/test_api_integration.mjs` covering auth rejection/acceptance, rate-limit 429 behavior, and partial-fallback payload semantics.
+- Updated runtime runbook and product spec status notes for hardening verification and new route coverage.
+
+Validation run:
+- `npm run test:api-integration` (pass)
+- `CONTROL_CENTER_DIST_DIR=.next-local npm run build` (pass)
+- `npm run smoke:metrics && npm run smoke:overview` (pass)
+- `node scripts/check_knowledge_base.js` (pass)
+- `node scripts/security_preflight.js` (pass)
 
 ## Related Docs
 - `../../product-specs/openclaw-control-center.md`

@@ -5,10 +5,17 @@ Last Reviewed: 2026-02-25
 
 Internal operations dashboard for OpenClaw runtime visibility.
 
-## Current scope (Phase 1.1 + Phase 2/3 scaffolding)
+## Current scope (Phase 1.1 + Phase 2/3)
 - Dark dashboard shell with KPI freshness and ingest lag card
 - `/api/overview` endpoint with partial-fallback semantics, source health, incident timeline, and recommendation scaffolding
 - `/api/metrics` history endpoint with `range` + `resolution` query support
+- Phase 2 drilldown routes + APIs:
+  - UI: `/cron`, `/agents`, `/connections`
+  - API: `/api/drilldown/cron`, `/api/drilldown/agents`, `/api/drilldown/connections`
+- Phase 3 weekly optimization summary API + artifact:
+  - `/api/weekly-summary` (cached/latest)
+  - `/api/weekly-summary?refresh=1` (force regenerate)
+  - Artifact: `apps/control-center/data/ingest/weekly-summary/latest.json`
 - Trend chart fed by local ingest snapshots and optional rollups (`1h`, `1d`)
 - API hardening:
   - Optional bearer auth (`CONTROL_CENTER_API_TOKEN`)
@@ -32,6 +39,12 @@ When served behind Tailscale path proxy, this app uses base path:
 ## Smoke check
 ```bash
 OPENCLAW_WORKSPACE=/data/repos/vidgen node apps/control-center/scripts/smoke_overview.js
+```
+
+## Integration test (auth/rate-limit/fallback)
+```bash
+cd apps/control-center
+npm run test:api-integration
 ```
 
 ## Ingest + retention + rollups

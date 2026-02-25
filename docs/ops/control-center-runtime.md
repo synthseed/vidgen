@@ -35,6 +35,22 @@ systemctl status vidgen-control-center --no-pager
 systemctl status vidgen-control-center-ingest.timer --no-pager
 curl -f http://127.0.0.1:3210/control-center
 curl -f http://127.0.0.1:3210/control-center/api/healthz
+curl -f http://127.0.0.1:3210/control-center/api/drilldown/cron
+curl -f http://127.0.0.1:3210/control-center/api/weekly-summary
+```
+
+## Runtime Hardening Verification
+```bash
+# service listens only on loopback
+ss -ltnp | rg ':3210'
+
+# app and ingest are healthy
+systemctl is-active vidgen-control-center.service
+systemctl is-active vidgen-control-center-ingest.timer
+
+# auth/rate-limit/fallback integration checks
+cd /docker/openclaw-jnqf/data/repos/vidgen/apps/control-center
+npm run test:api-integration
 ```
 
 ## Tailscale Route
