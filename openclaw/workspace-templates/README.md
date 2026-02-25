@@ -24,6 +24,7 @@ Role templates included:
 - `css_architecture_agent`
 - `testing_frontend_agent`
 - `web_scraping_agent`
+- `agentic_developer_agent`
 
 Each role folder contains:
 - `SOUL.md` (values and operating posture)

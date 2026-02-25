@@ -29,6 +29,7 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 - UI styling specialist lane: `css_architecture_agent` (scalable CSS systems and design-token architecture).
 - Frontend quality lane: `testing_frontend_agent` (React testing strategy and automation reliability).
 - Data extraction lane: `web_scraping_agent` (ethical scraping and extraction reliability).
+- Agent systems lane: `agentic_developer_agent` (MCP, tool orchestration, and autonomous workflow architecture).
 - Video lane lead: `director`.
 - Video specialist team: `trend_researcher`, `script_writer`, `continuity_reviewer`, `render_operator`, `publisher`.
 - Cross-team safety lane: `reliability_guardian` + `container_expert` (VPS/Docker/Tailscale specialist).
