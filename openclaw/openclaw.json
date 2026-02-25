@@ -16,7 +16,8 @@
             "webhooks_agent",
             "realtime_data_agent",
             "css_architecture_agent",
-            "testing_frontend_agent"
+            "testing_frontend_agent",
+            "web_scraping_agent"
           ]
         }
       },
@@ -125,6 +126,10 @@
       },
       {
         "id": "testing_frontend_agent",
+        "model": "openai-codex/gpt-5.3-codex"
+      },
+      {
+        "id": "web_scraping_agent",
         "model": "openai-codex/gpt-5.3-codex"
       }
     ]
