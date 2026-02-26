@@ -27,7 +27,7 @@ If `vidgen-openclaw-autosync.service` is active, new `dev` commits are auto-appl
 - `PORT=3210`
 - `CONTROL_CENTER_BASE_PATH=/control-center`
 - `OPENCLAW_WORKSPACE=/docker/openclaw-jnqf/data/repos/vidgen`
-- `CONTROL_CENTER_DIST_DIR=.next` (optional override in constrained environments)
+- `CONTROL_CENTER_DIST_DIR=.next` (default; keep this aligned with autosync/autoupdate build scripts)
 - `CONTROL_CENTER_RETENTION_DAYS=7`
 - `CONTROL_CENTER_API_TOKEN=<optional private token>`
 - `CONTROL_CENTER_RATE_LIMIT_CAPACITY=60`

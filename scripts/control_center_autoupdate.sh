@@ -6,7 +6,7 @@ APP_DIR="${APP_DIR:-${REPO_DIR}/apps/control-center}"
 BRANCH="${BRANCH:-dev}"
 SERVICE_NAME="${SERVICE_NAME:-vidgen-control-center.service}"
 RUN_AS_USER="${RUN_AS_USER:-clawuser}"
-DIST_DIR="${DIST_DIR:-.next-local}"
+DIST_DIR="${DIST_DIR:-.next}"
 
 log() {
   printf "%s [control-center-autoupdate] %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
