@@ -23,8 +23,8 @@ async function waitFor(url, timeoutMs = 60000) {
 }
 
 async function startServer(workspace) {
-  const distDir = path.join(APP_DIR, '.next-local-test');
-  await mkdir(distDir, { recursive: true });
+  const distDir = '.next-local';
+  await mkdir(path.join(APP_DIR, distDir), { recursive: true });
 
   const child = spawn('npm', ['run', 'dev', '--', '-p', PORT], {
     cwd: APP_DIR,
