@@ -2,7 +2,7 @@
   "agents": {
     "list": [
       {
-        "id": "main",
+        "id": "Tars",
         "default": true,
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
@@ -20,7 +20,32 @@
             "web_scraping_agent",
             "agentic_developer_agent"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-Tars",
+        "agentDir": "/data/.openclaw/agents/Tars/agent"
+      },
+      {
+        "id": "main",
+        "default": false,
+        "model": "openai-codex/gpt-5.3-codex",
+        "subagents": {
+          "allowAgents": [
+            "director",
+            "product_manager",
+            "release_manager",
+            "reliability_guardian",
+            "web_agent",
+            "container_expert",
+            "webhooks_agent",
+            "realtime_data_agent",
+            "css_architecture_agent",
+            "testing_frontend_agent",
+            "web_scraping_agent",
+            "agentic_developer_agent"
+          ]
+        },
+        "workspace": "/data/.openclaw/workspace-main",
+        "agentDir": "/data/.openclaw/agents/main/agent"
       },
       {
         "id": "director",
@@ -34,7 +59,9 @@
             "publisher",
             "reliability_guardian"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-director",
+        "agentDir": "/data/.openclaw/agents/director/agent"
       },
       {
         "id": "product_manager",
@@ -44,7 +71,9 @@
             "engineering_lead",
             "qa_guardian"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-product_manager",
+        "agentDir": "/data/.openclaw/agents/product_manager/agent"
       },
       {
         "id": "engineering_lead",
@@ -55,10 +84,14 @@
             "qa_guardian",
             "web_agent"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-engineering_lead",
+        "agentDir": "/data/.openclaw/agents/engineering_lead/agent"
       },
       {
-        "id": "implementation_engineer"
+        "id": "implementation_engineer",
+        "workspace": "/data/.openclaw/workspace-implementation_engineer",
+        "agentDir": "/data/.openclaw/agents/implementation_engineer/agent"
       },
       {
         "id": "web_agent",
@@ -67,10 +100,14 @@
           "allowAgents": [
             "qa_guardian"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-web_agent",
+        "agentDir": "/data/.openclaw/agents/web_agent/agent"
       },
       {
-        "id": "qa_guardian"
+        "id": "qa_guardian",
+        "workspace": "/data/.openclaw/workspace-qa_guardian",
+        "agentDir": "/data/.openclaw/agents/qa_guardian/agent"
       },
       {
         "id": "release_manager",
@@ -79,10 +116,14 @@
             "qa_guardian",
             "reliability_guardian"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-release_manager",
+        "agentDir": "/data/.openclaw/agents/release_manager/agent"
       },
       {
-        "id": "trend_researcher"
+        "id": "trend_researcher",
+        "workspace": "/data/.openclaw/workspace-trend_researcher",
+        "agentDir": "/data/.openclaw/agents/trend_researcher/agent"
       },
       {
         "id": "script_writer",
@@ -90,16 +131,24 @@
           "allowAgents": [
             "trend_researcher"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-script_writer",
+        "agentDir": "/data/.openclaw/agents/script_writer/agent"
       },
       {
-        "id": "continuity_reviewer"
+        "id": "continuity_reviewer",
+        "workspace": "/data/.openclaw/workspace-continuity_reviewer",
+        "agentDir": "/data/.openclaw/agents/continuity_reviewer/agent"
       },
       {
-        "id": "render_operator"
+        "id": "render_operator",
+        "workspace": "/data/.openclaw/workspace-render_operator",
+        "agentDir": "/data/.openclaw/agents/render_operator/agent"
       },
       {
-        "id": "publisher"
+        "id": "publisher",
+        "workspace": "/data/.openclaw/workspace-publisher",
+        "agentDir": "/data/.openclaw/agents/publisher/agent"
       },
       {
         "id": "reliability_guardian",
@@ -107,35 +156,51 @@
           "allowAgents": [
             "container_expert"
           ]
-        }
+        },
+        "workspace": "/data/.openclaw/workspace-reliability_guardian",
+        "agentDir": "/data/.openclaw/agents/reliability_guardian/agent"
       },
       {
         "id": "container_expert",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-container_expert",
+        "agentDir": "/data/.openclaw/agents/container_expert/agent"
       },
       {
         "id": "webhooks_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-webhooks_agent",
+        "agentDir": "/data/.openclaw/agents/webhooks_agent/agent"
       },
       {
         "id": "realtime_data_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-realtime_data_agent",
+        "agentDir": "/data/.openclaw/agents/realtime_data_agent/agent"
       },
       {
         "id": "css_architecture_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-css_architecture_agent",
+        "agentDir": "/data/.openclaw/agents/css_architecture_agent/agent"
       },
       {
         "id": "testing_frontend_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-testing_frontend_agent",
+        "agentDir": "/data/.openclaw/agents/testing_frontend_agent/agent"
       },
       {
         "id": "web_scraping_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-web_scraping_agent",
+        "agentDir": "/data/.openclaw/agents/web_scraping_agent/agent"
       },
       {
         "id": "agentic_developer_agent",
-        "model": "openai-codex/gpt-5.3-codex"
+        "model": "openai-codex/gpt-5.3-codex",
+        "workspace": "/data/.openclaw/workspace-agentic_developer_agent",
+        "agentDir": "/data/.openclaw/agents/agentic_developer_agent/agent"
       }
     ]
   }
