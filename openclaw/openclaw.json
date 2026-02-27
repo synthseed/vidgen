@@ -1,9 +1,56 @@
 {
+  "meta": {
+    "lastTouchedVersion": "2026.2.23",
+    "lastTouchedAt": "2026-02-27T06:39:20.574Z"
+  },
+  "browser": {
+    "headless": true,
+    "noSandbox": true,
+    "defaultProfile": "openclaw"
+  },
+  "models": {
+    "mode": "merge"
+  },
   "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openai-codex/gpt-5.3-codex",
+        "fallbacks": []
+      },
+      "models": {
+        "openai/gpt-5.2": {
+          "alias": "ChatGPT 5.2"
+        },
+        "openai/gpt-5.1-codex": {
+          "alias": "ChatGPT 5.1 Codex"
+        },
+        "openai/gpt-5": {
+          "alias": "ChatGPT 5"
+        },
+        "openai/gpt-5-mini": {
+          "alias": "ChatGPT 5 Mini"
+        },
+        "openai/gpt-4.1": {
+          "alias": "ChatGPT 4.1"
+        },
+        "openai/gpt-5.3-codex": {
+          "alias": "ChatGPT 5.3 Codex"
+        },
+        "openai-codex/gpt-5.3-codex": {}
+      },
+      "workspace": "/data/.openclaw/workspace-tars",
+      "repoRoot": "/data/.openclaw/workspace-tars",
+      "memorySearch": {
+        "provider": "openai",
+        "model": "text-embedding-3-large"
+      }
+    },
     "list": [
       {
         "id": "Tars",
         "default": true,
+        "workspace": "/data/.openclaw/workspace-Tars",
+        "agentDir": "/data/.openclaw/agents/Tars/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
@@ -20,13 +67,13 @@
             "web_scraping_agent",
             "agentic_developer_agent"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-Tars",
-        "agentDir": "/data/.openclaw/agents/Tars/agent"
+        }
       },
       {
         "id": "main",
         "default": false,
+        "workspace": "/data/.openclaw/workspace-main",
+        "agentDir": "/data/.openclaw/agents/main/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
@@ -43,12 +90,12 @@
             "web_scraping_agent",
             "agentic_developer_agent"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-main",
-        "agentDir": "/data/.openclaw/agents/main/agent"
+        }
       },
       {
         "id": "director",
+        "workspace": "/data/.openclaw/workspace-director",
+        "agentDir": "/data/.openclaw/agents/director/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
@@ -59,24 +106,24 @@
             "publisher",
             "reliability_guardian"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-director",
-        "agentDir": "/data/.openclaw/agents/director/agent"
+        }
       },
       {
         "id": "product_manager",
+        "workspace": "/data/.openclaw/workspace-product_manager",
+        "agentDir": "/data/.openclaw/agents/product_manager/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
             "engineering_lead",
             "qa_guardian"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-product_manager",
-        "agentDir": "/data/.openclaw/agents/product_manager/agent"
+        }
       },
       {
         "id": "engineering_lead",
+        "workspace": "/data/.openclaw/workspace-engineering_lead",
+        "agentDir": "/data/.openclaw/agents/engineering_lead/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
@@ -84,9 +131,7 @@
             "qa_guardian",
             "web_agent"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-engineering_lead",
-        "agentDir": "/data/.openclaw/agents/engineering_lead/agent"
+        }
       },
       {
         "id": "implementation_engineer",
@@ -95,14 +140,14 @@
       },
       {
         "id": "web_agent",
+        "workspace": "/data/.openclaw/workspace-web_agent",
+        "agentDir": "/data/.openclaw/agents/web_agent/agent",
         "model": "openai-codex/gpt-5.3-codex",
         "subagents": {
           "allowAgents": [
             "qa_guardian"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-web_agent",
-        "agentDir": "/data/.openclaw/agents/web_agent/agent"
+        }
       },
       {
         "id": "qa_guardian",
@@ -111,14 +156,14 @@
       },
       {
         "id": "release_manager",
+        "workspace": "/data/.openclaw/workspace-release_manager",
+        "agentDir": "/data/.openclaw/agents/release_manager/agent",
         "subagents": {
           "allowAgents": [
             "qa_guardian",
             "reliability_guardian"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-release_manager",
-        "agentDir": "/data/.openclaw/agents/release_manager/agent"
+        }
       },
       {
         "id": "trend_researcher",
@@ -127,13 +172,13 @@
       },
       {
         "id": "script_writer",
+        "workspace": "/data/.openclaw/workspace-script_writer",
+        "agentDir": "/data/.openclaw/agents/script_writer/agent",
         "subagents": {
           "allowAgents": [
             "trend_researcher"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-script_writer",
-        "agentDir": "/data/.openclaw/agents/script_writer/agent"
+        }
       },
       {
         "id": "continuity_reviewer",
@@ -152,56 +197,162 @@
       },
       {
         "id": "reliability_guardian",
+        "workspace": "/data/.openclaw/workspace-reliability_guardian",
+        "agentDir": "/data/.openclaw/agents/reliability_guardian/agent",
         "subagents": {
           "allowAgents": [
             "container_expert"
           ]
-        },
-        "workspace": "/data/.openclaw/workspace-reliability_guardian",
-        "agentDir": "/data/.openclaw/agents/reliability_guardian/agent"
+        }
       },
       {
         "id": "container_expert",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-container_expert",
-        "agentDir": "/data/.openclaw/agents/container_expert/agent"
+        "agentDir": "/data/.openclaw/agents/container_expert/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "webhooks_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-webhooks_agent",
-        "agentDir": "/data/.openclaw/agents/webhooks_agent/agent"
+        "agentDir": "/data/.openclaw/agents/webhooks_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "realtime_data_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-realtime_data_agent",
-        "agentDir": "/data/.openclaw/agents/realtime_data_agent/agent"
+        "agentDir": "/data/.openclaw/agents/realtime_data_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "css_architecture_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-css_architecture_agent",
-        "agentDir": "/data/.openclaw/agents/css_architecture_agent/agent"
+        "agentDir": "/data/.openclaw/agents/css_architecture_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "testing_frontend_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-testing_frontend_agent",
-        "agentDir": "/data/.openclaw/agents/testing_frontend_agent/agent"
+        "agentDir": "/data/.openclaw/agents/testing_frontend_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "web_scraping_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-web_scraping_agent",
-        "agentDir": "/data/.openclaw/agents/web_scraping_agent/agent"
+        "agentDir": "/data/.openclaw/agents/web_scraping_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       },
       {
         "id": "agentic_developer_agent",
-        "model": "openai-codex/gpt-5.3-codex",
         "workspace": "/data/.openclaw/workspace-agentic_developer_agent",
-        "agentDir": "/data/.openclaw/agents/agentic_developer_agent/agent"
+        "agentDir": "/data/.openclaw/agents/agentic_developer_agent/agent",
+        "model": "openai-codex/gpt-5.3-codex"
       }
     ]
+  },
+  "tools": {
+    "exec": {
+      "host": "gateway",
+      "security": "full",
+      "ask": "off"
+    }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "bash": true,
+    "config": true,
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "hooks": {
+    "token": "WlHzyOWUB6brD8CO7QgSjgzuP35jogIS"
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "selfChatMode": true,
+      "allowFrom": [
+        "+17607171778"
+      ],
+      "groupAllowFrom": [
+        "+17607171778"
+      ],
+      "groupPolicy": "disabled",
+      "debounceMs": 0,
+      "mediaMaxMb": 50
+    },
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "botToken": "8386060169:AAGq61BeIN-bIBGne6MdINIj8QP9_3hU-Yo",
+      "groupPolicy": "disabled",
+      "streaming": "partial",
+      "actions": {
+        "sendMessage": true
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "tailnet",
+    "controlUi": {
+      "allowedOrigins": [
+        "https://srv1406887.tail1b780d.ts.net"
+      ],
+      "dangerouslyAllowHostHeaderOriginFallback": true,
+      "allowInsecureAuth": false,
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "WlHzyOWUB6brD8CO7QgSjgzuP35jogIS",
+      "rateLimit": {
+        "maxAttempts": 10,
+        "windowMs": 60000,
+        "lockoutMs": 300000
+      }
+    },
+    "trustedProxies": [
+      "127.0.0.1/32",
+      "100.126.172.19"
+    ],
+    "allowRealIpFallback": false,
+    "tailscale": {
+      "mode": "serve",
+      "resetOnExit": false
+    },
+    "remote": {
+      "token": "WlHzyOWUB6brD8CO7QgSjgzuP35jogIS"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "whatsapp": {
+        "enabled": true
+      },
+      "discord": {
+        "enabled": false
+      },
+      "imessage": {
+        "enabled": false
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "slack": {
+        "enabled": false
+      },
+      "nostr": {
+        "enabled": false
+      },
+      "signal": {
+        "enabled": false
+      },
+      "googlechat": {
+        "enabled": false
+      }
+    }
   }
 }
