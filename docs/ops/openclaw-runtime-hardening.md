@@ -1,7 +1,7 @@
 # OpenClaw Runtime Hardening & Continuity Runbook
 Owner: platform
 Status: active
-Last Reviewed: 2026-02-24
+Last Reviewed: 2026-02-26
 
 ## Purpose
 Capture the operational configuration needed to keep dashboard access stable while preserving secure defaults for a Docker-hosted OpenClaw runtime on a VPS.
@@ -23,7 +23,9 @@ Set and keep these values:
     "bind": "tailnet",
     "controlUi": {
       "allowInsecureAuth": false,
-      "dangerouslyDisableDeviceAuth": false
+      "dangerouslyAllowHostHeaderOriginFallback": false,
+      "dangerouslyDisableDeviceAuth": false,
+      "allowedOrigins": ["https://<trusted-tailnet-host>.ts.net"]
     },
     "tailscale": {
       "mode": "serve",

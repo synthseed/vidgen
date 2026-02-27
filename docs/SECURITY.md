@@ -43,7 +43,9 @@ Last Reviewed: 2026-02-23
 
 ## Gateway Control UI Hardening
 - Keep `gateway.controlUi.allowInsecureAuth=false` unless in a short-lived break-glass event.
+- Keep `gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=false` in normal operation.
 - Keep `gateway.controlUi.dangerouslyDisableDeviceAuth=false` in normal operation.
+- Require explicit `gateway.controlUi.allowedOrigins` for trusted Control UI origins; do not rely on host-header fallback.
 - When `gateway.bind` is non-loopback (LAN/tailnet/custom), configure `gateway.auth.rateLimit`.
 - Treat repeated `pairing required` disconnects as an auth-state issue; recover by approving/pairing the exact pending device request.
 
