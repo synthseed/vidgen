@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const REQUIRED_TEMPLATE_FILES = ["AGENTS.md", "SOUL.md", "IDENTITY.md", "MEMORY.md"];
+const REQUIRED_ROOT_AGENT = process.env.REQUIRED_ROOT_AGENT || "main";
+const EXPECTED_DEFAULT_AGENT = process.env.EXPECTED_DEFAULT_AGENT || REQUIRED_ROOT_AGENT;
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -128,11 +130,11 @@ function checkTopology(repoRoot) {
   if (defaults.length !== 1) {
     errors.push(`Exactly one default agent is required (found ${defaults.length})`);
   }
-  if (!ids.has("main")) {
-    errors.push('Required agent "main" is missing');
+  if (!ids.has(REQUIRED_ROOT_AGENT)) {
+    errors.push(`Required agent "${REQUIRED_ROOT_AGENT}" is missing`);
   }
-  if (defaults.length === 1 && defaults[0] !== "main") {
-    warnings.push(`Default agent is "${defaults[0]}", expected "main" for this repo pattern`);
+  if (defaults.length === 1 && defaults[0] !== EXPECTED_DEFAULT_AGENT) {
+    warnings.push(`Default agent is "${defaults[0]}", expected "${EXPECTED_DEFAULT_AGENT}" for this repo pattern`);
   }
 
   for (const agent of agents) {
@@ -166,14 +168,14 @@ function checkTopology(repoRoot) {
     }
   }
 
-  const mainAgent = agents.find((agent) => agent && agent.id === "main");
-  if (mainAgent) {
-    const mainAllow = normalizeAllowAgents(mainAgent.subagents);
-    if (!mainAllow.includes("director")) {
-      warnings.push('main does not allow "director"; project-team routing may break');
+  const rootAgent = agents.find((agent) => agent && agent.id === REQUIRED_ROOT_AGENT);
+  if (rootAgent) {
+    const rootAllow = normalizeAllowAgents(rootAgent.subagents);
+    if (!rootAllow.includes("director")) {
+      warnings.push(`${REQUIRED_ROOT_AGENT} does not allow "director"; project-team routing may break`);
     }
-    if (!mainAllow.includes("reliability_guardian")) {
-      warnings.push('main does not allow "reliability_guardian"; oversight lane may break');
+    if (!rootAllow.includes("reliability_guardian")) {
+      warnings.push(`${REQUIRED_ROOT_AGENT} does not allow "reliability_guardian"; oversight lane may break`);
     }
   }
 
@@ -182,11 +184,11 @@ function checkTopology(repoRoot) {
     errors.push(`Subagent delegation cycle detected: ${cycle}`);
   }
 
-  if (ids.has("main")) {
-    const reachable = reachableFrom(graph, "main");
+  if (ids.has(REQUIRED_ROOT_AGENT)) {
+    const reachable = reachableFrom(graph, REQUIRED_ROOT_AGENT);
     for (const id of ids) {
       if (!reachable.has(id)) {
-        warnings.push(`Agent "${id}" is not reachable from "main" and may never be delegated work`);
+        warnings.push(`Agent "${id}" is not reachable from "${REQUIRED_ROOT_AGENT}" and may never be delegated work`);
       }
     }
   }

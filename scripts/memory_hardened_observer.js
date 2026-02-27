@@ -6,7 +6,32 @@ const crypto = require('crypto');
 const { redact, stripImperatives } = require('./memory_redaction');
 
 const workspace = process.env.OPENCLAW_WORKSPACE || process.cwd();
-const sessionsDir = process.env.SESSIONS_DIR || '/data/.openclaw/agents/main/sessions';
+const openclawHome = process.env.OPENCLAW_HOME || '/data/.openclaw';
+
+function resolveDefaultAgentId() {
+  if (process.env.DEFAULT_ORCHESTRATOR_AGENT) return process.env.DEFAULT_ORCHESTRATOR_AGENT;
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(openclawHome, 'openclaw.json'), 'utf8'));
+    const list = cfg?.agents?.list;
+    if (Array.isArray(list)) {
+      const d = list.find((a) => a && a.default === true && typeof a.id === 'string' && a.id.trim());
+      if (d) return d.id;
+    }
+  } catch {}
+  return 'main';
+}
+
+function resolveSessionsDir() {
+  if (process.env.SESSIONS_DIR) return process.env.SESSIONS_DIR;
+  const agentId = resolveDefaultAgentId();
+  const exact = path.join(openclawHome, 'agents', agentId, 'sessions');
+  if (fs.existsSync(exact)) return exact;
+  const lower = path.join(openclawHome, 'agents', String(agentId).toLowerCase(), 'sessions');
+  if (fs.existsSync(lower)) return lower;
+  return exact;
+}
+
+const sessionsDir = resolveSessionsDir();
 const outDir = path.join(workspace, 'memory/hardened');
 const shadow = process.env.HARDENED_MEMORY_SHADOW !== '0';
 const outFile = path.join(outDir, shadow ? 'observations.shadow.jsonl' : 'observations.jsonl');

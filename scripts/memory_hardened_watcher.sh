@@ -2,7 +2,8 @@
 set -euo pipefail
 
 WORKSPACE="${OPENCLAW_WORKSPACE:-/data/repos/vidgen}"
-SESSIONS_DIR="${SESSIONS_DIR:-/data/.openclaw/agents/main/sessions}"
+MEMORY_BANK_AGENT="${MEMORY_BANK_AGENT:-main}"
+SESSIONS_DIR="${SESSIONS_DIR:-/data/.openclaw/agents/${MEMORY_BANK_AGENT}/sessions}"
 THRESHOLD="${HARDENED_WATCHER_THRESHOLD:-40}"
 COOLDOWN="${HARDENED_WATCHER_COOLDOWN_SECS:-300}"
 STAMP_FILE="${WORKSPACE}/memory/hardened/.watcher-last-run"

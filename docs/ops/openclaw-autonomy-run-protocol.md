@@ -10,7 +10,7 @@ Run autonomous multi-agent work with human oversight and deterministic gates bef
 Applies to:
 - Product/engineering lane (`product_manager` through `release_manager`)
 - Video lane (`director` through `publisher`)
-- Oversight (`main`, `reliability_guardian`)
+- Oversight (active orchestrator `Tars`, continuity memory bank `main`, `reliability_guardian`)
 
 ## Supervised Run Sequence
 1. **Intake + scope lock**

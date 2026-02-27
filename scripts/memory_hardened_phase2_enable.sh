@@ -21,7 +21,7 @@ ensure_cron() {
 ensure_cron \
   "hardened-memory:observer" \
   "*/15 * * * *" \
-  "Run OPENCLAW_WORKSPACE=${ROOT} HARDENED_MEMORY_SHADOW=0 node scripts/memory_hardened_observer.js && node scripts/memory_schema_validate.js. Reply NO_REPLY if successful; alert on error." \
+  "Run OPENCLAW_WORKSPACE=${ROOT} MEMORY_BANK_AGENT=main SESSIONS_DIR=/data/.openclaw/agents/main/sessions HARDENED_MEMORY_SHADOW=0 node scripts/memory_hardened_observer.js && node scripts/memory_schema_validate.js. Reply NO_REPLY if successful; alert on error." \
   "hardened-memory:observer"
 
 ensure_cron \

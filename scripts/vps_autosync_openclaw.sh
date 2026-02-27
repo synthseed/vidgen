@@ -19,6 +19,7 @@ STATE_FILE="${STATE_FILE:-/tmp/vidgen-openclaw-autosync.state}"
 WORKTREE_BASE="${WORKTREE_BASE:-/tmp/vidgen-autosync-worktrees}"
 RUNTIME_BACKUP="${RUNTIME_BACKUP:-${OPENCLAW_HOME}/openclaw.json.autosync-prev}"
 VERIFY_REQUIRE_GATEWAY="${VERIFY_REQUIRE_GATEWAY:-0}"
+VERIFY_AGENT_ID="${VERIFY_AGENT_ID:-}"
 VERIFY_LOG_ERROR_PATTERN="${VERIFY_LOG_ERROR_PATTERN:-Config invalid|EACCES: permission denied}"
 WHATSAPP_ALERT_ENABLED="${WHATSAPP_ALERT_ENABLED:-0}"
 WHATSAPP_ALERT_CHANNEL="${WHATSAPP_ALERT_CHANNEL:-whatsapp}"
@@ -501,6 +502,24 @@ run_runtime_file_check() {
   return 1
 }
 
+resolve_verify_agent_id() {
+  if [[ -n "$VERIFY_AGENT_ID" ]]; then
+    echo "$VERIFY_AGENT_ID"
+    return 0
+  fi
+
+  local detected
+  if detected=$(docker compose exec -T "$OPENCLAW_SERVICE" \
+    node -e "const fs=require('fs');const p='${OPENCLAW_HOME}/openclaw.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));const d=(j.agents&&Array.isArray(j.agents.list)?j.agents.list.find(a=>a&&a.default===true):null);process.stdout.write((d&&d.id)||'');" 2>/dev/null); then
+    if [[ -n "$detected" ]]; then
+      echo "$detected"
+      return 0
+    fi
+  fi
+
+  echo "main"
+}
+
 run_runtime_verify() {
   log "restarting $OPENCLAW_SERVICE and verifying health"
   cd "$PROJECT_DIR"
@@ -510,9 +529,11 @@ run_runtime_verify() {
   wait_for_openclaw_container_ready 20 2 || return 1
 
   run_runtime_file_check || return 1
+  local verify_agent
+  verify_agent="$(resolve_verify_agent_id)"
   if [[ "$VERIFY_REQUIRE_GATEWAY" == "1" ]]; then
     run_optional_gateway_check "openclaw doctor" openclaw doctor || return 1
-    run_optional_gateway_check "openclaw models status --agent main --check" openclaw models status --agent main --check || return 1
+    run_optional_gateway_check "openclaw models status --agent ${verify_agent} --check" openclaw models status --agent "${verify_agent}" --check || return 1
   else
     log "gateway checks disabled (VERIFY_REQUIRE_GATEWAY=0)"
   fi

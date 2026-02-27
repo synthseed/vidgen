@@ -7,6 +7,8 @@ function parseArgs(argv) {
   const args = {
     runtimeConfig: "/data/.openclaw/openclaw.json",
     repoConfig: "/data/repos/vidgen/openclaw/openclaw.json",
+    requiredAgent: process.env.REQUIRED_AGENT_ID || "main",
+    defaultAgent: process.env.DEFAULT_ORCHESTRATOR_AGENT || "main",
     dryRun: false
   };
 
@@ -19,6 +21,16 @@ function parseArgs(argv) {
     }
     if (token === "--repo-config") {
       args.repoConfig = argv[i + 1] || args.repoConfig;
+      i += 1;
+      continue;
+    }
+    if (token === "--required-agent") {
+      args.requiredAgent = argv[i + 1] || args.requiredAgent;
+      i += 1;
+      continue;
+    }
+    if (token === "--default-agent") {
+      args.defaultAgent = argv[i + 1] || args.defaultAgent;
       i += 1;
       continue;
     }
@@ -73,7 +85,9 @@ function normalizeAgent(agent) {
   return normalized;
 }
 
-function normalizeAgentsList(list) {
+function normalizeAgentsList(list, options = {}) {
+  const requiredAgent = options.requiredAgent || "main";
+  const defaultAgent = options.defaultAgent || requiredAgent;
   if (!Array.isArray(list) || list.length === 0) {
     throw new Error("Repo topology must contain agents.list with at least one entry");
   }
@@ -89,22 +103,25 @@ function normalizeAgentsList(list) {
     normalized.push(item);
   }
 
-  if (!ids.has("main")) {
-    throw new Error('Repo topology must include agent id "main"');
+  if (!ids.has(requiredAgent)) {
+    throw new Error(`Repo topology must include agent id "${requiredAgent}"`);
+  }
+  if (!ids.has(defaultAgent)) {
+    throw new Error(`Default agent "${defaultAgent}" is missing from repo topology`);
   }
 
   let defaults = normalized.filter((item) => item.default === true);
   if (defaults.length === 0) {
-    const main = normalized.find((item) => item.id === "main");
-    main.default = true;
-    defaults = [main];
+    const target = normalized.find((item) => item.id === defaultAgent);
+    target.default = true;
+    defaults = [target];
   } else if (defaults.length > 1) {
     for (const item of normalized) {
       delete item.default;
     }
-    const main = normalized.find((item) => item.id === "main");
-    if (main) {
-      main.default = true;
+    const target = normalized.find((item) => item.id === defaultAgent);
+    if (target) {
+      target.default = true;
     } else {
       normalized[0].default = true;
     }
@@ -125,19 +142,22 @@ function run() {
   const runtime = readJson(args.runtimeConfig);
   const repo = readJson(args.repoConfig);
 
-  const normalizedList = normalizeAgentsList(repo.agents && repo.agents.list);
-  const main = normalizedList.find((entry) => entry.id === "main");
+  const normalizedList = normalizeAgentsList(repo.agents && repo.agents.list, {
+    requiredAgent: args.requiredAgent,
+    defaultAgent: args.defaultAgent
+  });
+  const defaultAgent = normalizedList.find((entry) => entry.id === args.defaultAgent);
 
   runtime.agents = runtime.agents || {};
   runtime.agents.list = normalizedList;
 
-  if (main && isNonEmptyString(main.model)) {
+  if (defaultAgent && isNonEmptyString(defaultAgent.model)) {
     runtime.agents.defaults = runtime.agents.defaults || {};
     const modelDefaults =
       runtime.agents.defaults.model && typeof runtime.agents.defaults.model === "object"
         ? runtime.agents.defaults.model
         : {};
-    modelDefaults.primary = main.model;
+    modelDefaults.primary = defaultAgent.model;
     if (!Array.isArray(modelDefaults.fallbacks)) {
       modelDefaults.fallbacks = [];
     }

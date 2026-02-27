@@ -82,7 +82,7 @@ Last Reviewed: 2026-02-24
 
 ## Oversight + Safety
 - [ ] reliability_guardian reviewed run health and policy posture
-- [ ] main approved final promotion decision
+- [ ] Tars approved final promotion decision and continuity digest archived to main
 - [ ] Incident/deviation log attached (if any)
 
 ## Signoff

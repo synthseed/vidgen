@@ -6,7 +6,7 @@ Last Reviewed: 2026-02-23
 This folder contains the repository-owned OpenClaw artifacts used by the live VPS runtime.
 
 ## Contents
-- `openclaw.json`: repo-managed production topology (includes default admin agent `main`).
+- `openclaw.json`: repo-managed production topology (default active orchestrator is `Tars`; `main` is retained as continuity memory bank).
 - `workspace-templates/`: per-agent identity templates:
   - `SOUL.md`
   - `IDENTITY.md`
@@ -16,12 +16,13 @@ This folder contains the repository-owned OpenClaw artifacts used by the live VP
 ## Runtime Ownership Boundary
 1. Keep repo ownership limited to `openclaw/openclaw.json` and role identity templates.
 2. Keep live VPS private settings (auth, channels, sessions, security, env secrets) outside this repo.
-3. Keep role-critical decisions on role main sessions to preserve identity context.
-4. Keep `main` as the default admin entry point; delegate project execution to project leads.
+3. Keep role-critical decisions on the active orchestrator session (`Tars`) and archive continuity artifacts to `main`.
+4. Keep `Tars` as the default admin entry point; reserve `main` for continuity memory/archive duties.
 5. Do not use relative `agentDir` paths; use OpenClaw defaults or absolute writable paths only.
 
 ## Team Pattern (Current)
-- Global overseer: `main` (admin default, continuity + security + safe remediation).
+- Global overseer/orchestrator: `Tars` (admin default, delegation + safe remediation).
+- Continuity memory bank: `main` (long-term archive, policy memory, and continuity references).
 - Product+engineering lane: `product_manager` -> `engineering_lead` -> `implementation_engineer`/`web_agent` -> `qa_guardian` -> `release_manager`.
 - Web app specialist lane: `web_agent` (Node.js/React/TypeScript primary).
 - Integration specialist lane: `webhooks_agent` (webhook sending/receiving reliability + security).
