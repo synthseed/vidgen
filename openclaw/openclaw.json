@@ -352,7 +352,22 @@
       },
       "googlechat": {
         "enabled": false
+      },
+      "openclaw-mem0": {
+        "enabled": true,
+        "config": {
+          "apiKey": "${MEM0_API_KEY}",
+          "userId": "mateo",
+          "autoRecall": true,
+          "autoCapture": true,
+          "topK": 8
+        }
       }
-    }
+    },
+    "allow": [
+      "openclaw-mem0",
+      "telegram",
+      "whatsapp"
+    ]
   }
 }
