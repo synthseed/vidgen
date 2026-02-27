@@ -1,6 +1,0 @@
-hardened/*.jsonl
-hardened/archive/
-hardened/backups/
-hardened/metrics/
-hardened/quarantine/
-!.gitignore
