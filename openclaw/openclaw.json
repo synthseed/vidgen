@@ -301,9 +301,9 @@
       "allowedOrigins": [
         "https://srv1406887.tail1b780d.ts.net"
       ],
-      "dangerouslyAllowHostHeaderOriginFallback": true,
+      "dangerouslyAllowHostHeaderOriginFallback": false,
       "allowInsecureAuth": false,
-      "dangerouslyDisableDeviceAuth": true
+      "dangerouslyDisableDeviceAuth": false
     },
     "auth": {
       "mode": "token",
