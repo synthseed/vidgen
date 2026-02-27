@@ -46,6 +46,13 @@ Set and keep these values:
 Also enforce:
 - `chmod 600 /data/.openclaw/openclaw.json`
 
+Runtime drift guard (autosync):
+- `scripts/openclaw_apply_repo_topology.js` auto-corrects these `gateway.controlUi` flags to `false` on each deploy/apply:
+  - `allowInsecureAuth`
+  - `dangerouslyAllowHostHeaderOriginFallback`
+  - `dangerouslyDisableDeviceAuth`
+- `scripts/vps_autosync_openclaw.sh` verification fails if any of those flags are not `false` after apply/restart.
+
 ## Alerting Jobs (Gateway Scheduler)
 Configured periodic checks:
 - `healthcheck:gateway-watch` every 10 minutes
@@ -95,6 +102,7 @@ Expected state:
 - Channels healthy
 - Security audit: no critical findings
 - Scheduled health jobs present and enabled
+- `gateway.controlUi.{allowInsecureAuth,dangerouslyAllowHostHeaderOriginFallback,dangerouslyDisableDeviceAuth}` are all `false`
 
 ## Rollback
 1. Restore last known good config backup:

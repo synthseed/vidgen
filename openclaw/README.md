@@ -101,10 +101,11 @@ The runner:
 1. Pulls latest `dev` commit.
 2. Runs unified autonomy preflight (`scripts/autonomy_preflight.js`) covering topology, workflow integrity, docs, memory hygiene, security, and orchestrator dry-run.
 3. Applies repo-owned topology to runtime config without touching private auth/channel/session settings.
-4. Syncs per-agent templates (`SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
-5. Restarts OpenClaw and verifies health.
-6. Restores previous runtime config backup automatically if runtime verification fails.
-7. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.
+4. Enforces control UI safety guardrails by auto-correcting runtime `gateway.controlUi` break-glass flags back to `false` if they drift.
+5. Syncs per-agent templates (`SOUL.md`, `IDENTITY.md`, `MEMORY.md`) into runtime workspaces.
+6. Restarts OpenClaw and verifies health, including failing deployment if unsafe control UI flags are still present.
+7. Restores previous runtime config backup automatically if runtime verification fails.
+8. Sends Telegram and/or WhatsApp failure alerts (with cooldown) when enabled.
 
 Deploy workflow post-checks:
 1. Event-driven deploy runs on push to `dev` (and optional manual dispatch) from a hosted runner that joins your tailnet.

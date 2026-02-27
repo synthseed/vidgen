@@ -493,7 +493,7 @@ run_optional_gateway_check() {
 run_runtime_file_check() {
   local output
   if output=$(docker compose exec -T "$OPENCLAW_SERVICE" \
-    node -e "const fs=require('fs');const p='${OPENCLAW_HOME}/openclaw.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(!j.agents||!Array.isArray(j.agents.list)||j.agents.list.length===0){throw new Error('agents.list missing or empty')}if(!j.agents.list.some((a)=>a&&a.id==='main')){throw new Error('main agent missing')}console.log('ok');" 2>&1); then
+    node -e "const fs=require('fs');const p='${OPENCLAW_HOME}/openclaw.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(!j.agents||!Array.isArray(j.agents.list)||j.agents.list.length===0){throw new Error('agents.list missing or empty')}if(!j.agents.list.some((a)=>a&&a.id==='main')){throw new Error('main agent missing')}const c=(j.gateway&&j.gateway.controlUi)||{};const unsafe=['allowInsecureAuth','dangerouslyAllowHostHeaderOriginFallback','dangerouslyDisableDeviceAuth'].filter((k)=>c[k]!==false);if(unsafe.length){throw new Error('unsafe controlUi flags present: '+unsafe.join(','))}console.log('ok');" 2>&1); then
     log "runtime file check passed"
     return 0
   fi
@@ -521,11 +521,9 @@ resolve_verify_agent_id() {
 }
 
 run_runtime_verify() {
-  log "restarting $OPENCLAW_SERVICE and verifying health"
+  log "verifying runtime health without container restart"
   cd "$PROJECT_DIR"
 
-  docker compose restart "$OPENCLAW_SERVICE" >/dev/null || return 1
-  sleep "$SLEEP_AFTER_RESTART" || return 1
   wait_for_openclaw_container_ready 20 2 || return 1
 
   run_runtime_file_check || return 1

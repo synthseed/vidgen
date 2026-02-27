@@ -68,18 +68,22 @@ function normalizeAgent(agent) {
     throw new Error("Each agent requires a non-empty id");
   }
 
-  const normalized = { id: agent.id };
+  const normalized = { ...agent, id: agent.id };
 
-  if (agent.default === true) normalized.default = true;
-  if (isNonEmptyString(agent.model)) normalized.model = agent.model;
+  if (agent.default !== true) delete normalized.default;
+  if (!isNonEmptyString(agent.model)) delete normalized.model;
 
   if (agent.subagents && typeof agent.subagents === "object") {
     const allow = Array.isArray(agent.subagents.allowAgents)
       ? [...new Set(agent.subagents.allowAgents.filter(isNonEmptyString))]
       : [];
     if (allow.length > 0) {
-      normalized.subagents = { allowAgents: allow };
+      normalized.subagents = { ...(agent.subagents || {}), allowAgents: allow };
+    } else {
+      delete normalized.subagents;
     }
+  } else {
+    delete normalized.subagents;
   }
 
   return normalized;
@@ -130,6 +134,30 @@ function normalizeAgentsList(list, options = {}) {
   return normalized;
 }
 
+function enforceSafeControlUi(runtime) {
+  runtime.gateway = runtime.gateway && typeof runtime.gateway === "object" ? runtime.gateway : {};
+  runtime.gateway.controlUi =
+    runtime.gateway.controlUi && typeof runtime.gateway.controlUi === "object"
+      ? runtime.gateway.controlUi
+      : {};
+
+  const required = {
+    allowInsecureAuth: false,
+    dangerouslyAllowHostHeaderOriginFallback: false,
+    dangerouslyDisableDeviceAuth: false
+  };
+
+  const corrected = [];
+  for (const [key, expected] of Object.entries(required)) {
+    if (runtime.gateway.controlUi[key] !== expected) {
+      corrected.push({ key, from: runtime.gateway.controlUi[key], to: expected });
+      runtime.gateway.controlUi[key] = expected;
+    }
+  }
+
+  return corrected;
+}
+
 function run() {
   const args = parseArgs(process.argv.slice(2));
   if (!fs.existsSync(args.runtimeConfig)) {
@@ -164,6 +192,8 @@ function run() {
     runtime.agents.defaults.model = modelDefaults;
   }
 
+  const correctedControlUi = enforceSafeControlUi(runtime);
+
   runtime.meta = runtime.meta || {};
   runtime.meta.lastTouchedAt = new Date().toISOString();
 
@@ -172,6 +202,11 @@ function run() {
     console.log(`runtime: ${args.runtimeConfig}`);
     console.log(`repo: ${args.repoConfig}`);
     console.log(`agents.list count: ${normalizedList.length}`);
+    if (correctedControlUi.length > 0) {
+      console.log(`controlUi guard: would auto-correct ${correctedControlUi.length} unsafe flag(s)`);
+    } else {
+      console.log("controlUi guard: no unsafe flags detected");
+    }
     return;
   }
 
@@ -180,6 +215,15 @@ function run() {
   writeJsonAtomic(args.runtimeConfig, runtime);
 
   console.log(`applied repo topology to runtime config: ${args.runtimeConfig}`);
+  if (correctedControlUi.length > 0) {
+    for (const entry of correctedControlUi) {
+      console.log(
+        `controlUi guard auto-corrected ${entry.key}: ${JSON.stringify(entry.from)} -> ${JSON.stringify(entry.to)}`
+      );
+    }
+  } else {
+    console.log("controlUi guard: no unsafe flags detected");
+  }
   console.log(`backup written: ${backupPath}`);
 }
 
